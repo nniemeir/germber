@@ -1,5 +1,12 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef COMMON_H
+#define COMMON_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
 
 struct key_value {
   unsigned char key;

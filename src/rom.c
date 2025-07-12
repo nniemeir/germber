@@ -12,7 +12,13 @@ void print_rom_info(void) {
 
 struct rom_ctx rom;
 
+void cleanup_rom(void) {
+  if (rom.data) {
+    free(rom.data);
+  }
+}
+
 void init_rom_ctx(void) {
   size_t file_size;
-  rom.data = read_file("/home/noodle/Downloads/mm2.gb", &file_size);
+  rom.data = read_file("/home/noodle/Downloads/tetris.gb", &file_size);
 }

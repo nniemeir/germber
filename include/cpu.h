@@ -1,9 +1,10 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include <stdint.h>
+#include "common.h"
 #include "instructions.h"
-#include "stdbool.h"
+
+#define BIT(a, n) ((a & (1 << n)) ? 1 : 0)
 
 union a_f{
   struct {
@@ -61,7 +62,16 @@ struct cpu_ctx {
 extern struct cpu_ctx cpu;
 
 uint16_t cpu_read_reg(reg_type rt);
-bool cpu_step();
+bool cpu_step(void);
 void cpu_init(void);
+
+typedef void (*IN_PROC)(void);
+
+IN_PROC inst_get_processor(void);
+
+#define CPU_FLAG_Z BIT(cpu.regs.AF.F, 7)
+#define CPU_FLAG_C BIT(cpu.regs.AF.F, 4)
+#define BIT_SET(a, n, on) { if (on) a |= (1 << n); else a &= ~(1 << n);}
+
 
 #endif

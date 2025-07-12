@@ -1,6 +1,6 @@
 
 #include "cart.h"
-#include "main.h"
+#include "common.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -40,10 +40,6 @@ uint8_t bus_read(uint16_t address) {
   return 0;
 }
 
-void bus_write(uint16_t address, uint8_t value) {
-  if (address < 0x8000) {
-    cart_write(address, value);
-  }
-  
+void bus_write(void) {
   fprintf(stderr, "Not implemented");
 }

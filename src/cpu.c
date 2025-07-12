@@ -28,6 +28,10 @@ static void fetch_data(void) {
   cpu.mem_dest = 0;
   cpu.dest_is_mem = false;
 
+  if (cpu.current_instruction == NULL) {
+    return;
+  }
+
   switch (cpu.current_instruction->mode) {
   case AM_IMP:
     return;
@@ -58,9 +62,16 @@ static void fetch_data(void) {
   }
 }
 
-static void execute(void) { return; }
+static void execute(void) {
+  IN_PROC proc = inst_get_processor();
 
-bool cpu_step() {
+  if (!proc) {
+    exit(-7);
+  }
+  proc();
+}
+
+bool cpu_step(void) {
   uint16_t pc = cpu.regs.PC;
   if (cpu.halted) {
     return false;
@@ -72,9 +83,12 @@ bool cpu_step() {
 
   fetch_data();
 
-  printf("Executing Instruction: %02X    PC: %04X\n", cpu.current_opcode, pc);
-
+  printf("$%3X: %7s (%02X %02X %02X) A: %02X B: %02X C: %02X\n", pc,
+         inst_name(cpu.current_instruction->type), cpu.current_opcode,
+         bus_read(pc + 1), bus_read(pc + 2), cpu.regs.AF.A, cpu.regs.BC.B,
+         cpu.regs.BC.C);
+  
   execute();
-
+  
   return true;
 }

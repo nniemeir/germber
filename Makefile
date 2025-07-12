@@ -2,6 +2,7 @@ SRC = \
 src/bus.c \
 src/cart.c \
 src/cpu.c \
+src/cpu_proc.c \
 src/cpu_utils.c \
 src/emu.c \
 src/file.c \

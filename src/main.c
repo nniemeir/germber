@@ -1,10 +1,8 @@
-#include "main.h"
-#include "file.h"
+#include "common.h"
+#include "cpu.h"
+#include "emu.h"
 #include "header.h"
 #include "rom.h"
-#include "cart.h"
-#include "emu.h"
-#include "cpu.h"
 
 struct emu_context emu;
 
@@ -13,10 +11,10 @@ int main(void) {
 
   if (!is_valid_rom()) {
     fprintf(stderr, "Invalid ROM\n");
-    free(rom.data);
+    cleanup_rom();
     return EXIT_FAILURE;
   }
-  
+
   print_rom_info();
 
   emu_init();
@@ -31,7 +29,7 @@ int main(void) {
     emu.ticks++;
   }
 
-  free(rom.data);
-  
+  cleanup_rom();
+
   return EXIT_SUCCESS;
 }

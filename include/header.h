@@ -1,9 +1,7 @@
 #ifndef HEADER_H
 #define HEADER_H
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+#include "common.h"
 
 #define NINTENDO_LOGO_LINE_LENGTH 0x10
 #define NUM_OF_OLD_LICENSEE 147

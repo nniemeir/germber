@@ -1,8 +1,7 @@
 #ifndef EMU_H
 #define EMU_H
 
-#include "stdint.h"
-#include "stdbool.h"
+#include "common.h"
 
 struct emu_context {
     bool paused;
