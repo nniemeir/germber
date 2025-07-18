@@ -1,10 +1,11 @@
 # GERMBER
 
-A GameBoy emulation project using Low Level Devel's as a starting point. I am mostly doing this to get an idea of how processors really work, so I have not decided if I will add functionality beyond CPU emulation.
+An annotated fork of Low Level Devel's [Gameboy emulator](https://github.com/rockytriton/LLD_gbemu) made for educational purposes.
 
 ## Dependencies
 * GCC
 * GNU make
+* SDL2 Development Libraries
 
 ## Installation
 Compile the project
@@ -22,7 +23,15 @@ sudo make install
 - `make clean` – Remove build objects
 - `make fclean` - Remove build objects and binary
 
-## License
-The MIT License (MIT)
+## Usage
+```
+germber [OPTIONS]
+```
 
-Copyright (c) 2025 Jacob Niemeir
+### Options
+```
+-d			            Enable debug mode
+-h                      Display program usage
+-p                      Specify color palette
+-r                      Specify ROM path
+```
