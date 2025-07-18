@@ -1,94 +1,115 @@
-#include "cpu.h"
-#include "bus.h"
-#include "emu.h"
-#include "stdio.h"
-#include <stdlib.h>
+#include <cpu.h>
+#include <bus.h>
+#include <emu.h>
+#include <interrupts.h>
+#include <dbg.h>
+#include <timer.h>
 
-struct cpu_ctx cpu = {0};
+cpu_context ctx = {0};
+
+#define CPU_DEBUG 0
+
+cpu_context *get_cpu_ctx(void) {
+    return &ctx;
+}
 
 void cpu_init(void) {
-  cpu.regs.PC = 0x100;
-  cpu.regs.AF.A = 0x01;
+    ctx.regs.pc = 0x100;
+    ctx.regs.sp = 0xFFFE;
+    *((short *)&ctx.regs.a) = 0xB001;
+    *((short *)&ctx.regs.b) = 0x1300;
+    *((short *)&ctx.regs.d) = 0xD800;
+    *((short *)&ctx.regs.h) = 0x4D01;
+    ctx.ie_register = 0;
+    ctx.int_flags = 0;
+    ctx.int_master_enabled = false;
+    ctx.enabling_ime = false;
+
+    timer_get_context()->div = 0xABCC;
 }
 
-static int fetch_instruction(void) {
-  cpu.current_opcode = bus_read(cpu.regs.PC++);
-
-  cpu.current_instruction = instruction_by_opcode(cpu.current_opcode);
-  if (!cpu.current_instruction) {
-    printf("Unhandled opcode: 0x%02X at PC: 0x%04X\n", cpu.current_opcode,
-           cpu.regs.PC - 1);
-    return 1;
-  }
-
-  return 0;
+static void fetch_instruction(void) {
+    ctx.cur_opcode = bus_read(ctx.regs.pc++);
+    ctx.cur_inst = instruction_by_opcode(ctx.cur_opcode);
 }
 
-static void fetch_data(void) {
-  cpu.mem_dest = 0;
-  cpu.dest_is_mem = false;
-
-  if (cpu.current_instruction == NULL) {
-    return;
-  }
-
-  switch (cpu.current_instruction->mode) {
-  case AM_IMP:
-    return;
-
-  case AM_R:
-    cpu.fetched_data = cpu_read_reg(cpu.current_instruction->reg_1);
-    return;
-
-  case AM_R_D8:
-    cpu.fetched_data = bus_read(cpu.regs.PC);
-    emu_cycles(1);
-    cpu.regs.PC++;
-    return;
-
-  case AM_D16: {
-    uint16_t lo = bus_read(cpu.regs.PC);
-    emu_cycles(1);
-    uint16_t hi = bus_read(cpu.regs.PC + 1);
-    emu_cycles(1);
-    cpu.fetched_data = lo | (hi << 8);
-    cpu.regs.PC += 2;
-    return;
-  }
-
-  default:
-    printf("Unknown addressing mode %d\n", cpu.current_instruction->mode);
-    exit(-7);
-  }
-}
+void fetch_data(void);
 
 static void execute(void) {
-  IN_PROC proc = inst_get_processor();
+    IN_PROC proc = inst_get_processor(ctx.cur_inst->type);
 
-  if (!proc) {
-    exit(-7);
-  }
-  proc();
+    if (!proc) {
+        NO_IMPL
+    }
+
+    proc();
 }
 
 bool cpu_step(void) {
-  uint16_t pc = cpu.regs.PC;
-  if (cpu.halted) {
-    return false;
-  }
+    
+    if (!ctx.halted) {
+        u16 pc = ctx.regs.pc;
 
-  if (fetch_instruction() == 1) {
-    return false;
-  }
+        fetch_instruction();
+        emu_cycles(1);
+        fetch_data();
 
-  fetch_data();
+    if (debug_mode) {
+        char flags[16];
+        sprintf(flags, "%c%c%c%c", 
+            ctx.regs.f & (1 << 7) ? 'Z' : '-',
+            ctx.regs.f & (1 << 6) ? 'N' : '-',
+            ctx.regs.f & (1 << 5) ? 'H' : '-',
+            ctx.regs.f & (1 << 4) ? 'C' : '-'
+        );
 
-  printf("$%3X: %7s (%02X %02X %02X) A: %02X B: %02X C: %02X\n", pc,
-         inst_name(cpu.current_instruction->type), cpu.current_opcode,
-         bus_read(pc + 1), bus_read(pc + 2), cpu.regs.AF.A, cpu.regs.BC.B,
-         cpu.regs.BC.C);
-  
-  execute();
-  
-  return true;
+        char inst[16];
+        inst_to_str(&ctx, inst);
+
+        printf("%08lX - %04X: %-12s (%02X %02X %02X) A: %02X F: %s BC: %02X%02X DE: %02X%02X HL: %02X%02X\n", 
+            emu_get_context()->ticks,
+            pc, inst, ctx.cur_opcode,
+            bus_read(pc + 1), bus_read(pc + 2), ctx.regs.a, flags, ctx.regs.b, ctx.regs.c,
+            ctx.regs.d, ctx.regs.e, ctx.regs.h, ctx.regs.l);
+        }
+        if (ctx.cur_inst == NULL) {
+            printf("Unknown Instruction! %02X\n", ctx.cur_opcode);
+            exit(-7);
+        }
+
+        dbg_update();
+        dbg_print();
+
+        execute();
+    } else {
+        //is halted...
+        emu_cycles(1);
+
+        if (ctx.int_flags) {
+            ctx.halted = false;
+        }
+    }
+
+    if (ctx.int_master_enabled) {
+        cpu_handle_interrupts(&ctx);
+        ctx.enabling_ime = false;
+    }
+
+    if (ctx.enabling_ime) {
+        ctx.int_master_enabled = true;
+    }
+
+    return true;
+}
+
+u8 cpu_get_ie_register(void) {
+    return ctx.ie_register;
+}
+
+void cpu_set_ie_register(u8 n) {
+    ctx.ie_register = n;
+}
+
+void cpu_request_interrupt(interrupt_type t) {
+    ctx.int_flags |= t;
 }

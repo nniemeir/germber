@@ -1,35 +1,5 @@
-#include "common.h"
-#include "cpu.h"
-#include "emu.h"
-#include "header.h"
-#include "rom.h"
+#include <emu.h>
 
-struct emu_context emu;
-
-int main(void) {
-  init_rom_ctx();
-
-  if (!is_valid_rom()) {
-    fprintf(stderr, "Invalid ROM\n");
-    cleanup_rom();
-    return EXIT_FAILURE;
-  }
-
-  print_rom_info();
-
-  emu_init();
-
-  cpu_init();
-
-  while (emu.running) {
-    if (!cpu_step()) {
-      printf("CPU Stopped\n");
-      return -3;
-    }
-    emu.ticks++;
-  }
-
-  cleanup_rom();
-
-  return EXIT_SUCCESS;
+int main(int argc, char **argv) {
+    return emu_run(argc, argv);
 }

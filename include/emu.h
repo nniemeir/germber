@@ -1,19 +1,20 @@
 #ifndef EMU_H
 #define EMU_H
 
-#include "common.h"
+#include <common.h>
 
-struct emu_context {
+typedef struct {
     bool paused;
     bool running;
-    uint64_t ticks;
-};
+    bool die;
+    u64 ticks;
+} emu_context;
+
 
 int emu_run(int argc, char **argv);
-struct emu_context *emu_get_context();
-void emu_cycles(int cpu_cycles);
-void emu_init(void);
 
-extern struct emu_context emu;
+emu_context *emu_get_context(void);
+
+void emu_cycles(int cpu_cycles);
 
 #endif

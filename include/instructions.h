@@ -1,7 +1,7 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include "common.h"
+#include <common.h>
 
 typedef enum {
     AM_IMP,
@@ -101,16 +101,16 @@ typedef enum {
     CT_NONE, CT_NZ, CT_Z, CT_NC, CT_C
 } cond_type;
 
-struct instruction {
+typedef struct {
     in_type type;
     addr_mode mode;
     reg_type reg_1;
     reg_type reg_2;
     cond_type cond;
-    uint8_t parameter;
-};
+    u8 param;
+} instruction;
 
-struct instruction *instruction_by_opcode(uint8_t opcode);
+instruction *instruction_by_opcode(u8 opcode);
 
 char *inst_name(in_type t);
 

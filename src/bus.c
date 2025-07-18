@@ -1,45 +1,147 @@
+#include <bus.h>
+#include <cart.h>
+#include <cpu.h>
+#include <dma.h>
+#include <io.h>
+#include <ppu.h>
+#include <ram.h>
 
-#include "cart.h"
-#include "common.h"
-#include <stdint.h>
-#include <stdio.h>
+typedef enum {
+  ROM_BANK_0,
+  ROM_BANK_1,
+  CHR_RAM,
+  BG_MAP_1,
+  BG_MAP_2,
+  CART_RAM,
+  WRAM_BANK_0,
+  WRAM_BANK_1_7,
+  ECHO_RAM,
+  OAM,
+  UNUSABLE,
+  IO,
+  IE,
+  HRAM
+} MemRegion;
 
-// The Game Boy's 16-bit address bus is used to address ROM, RAM, and I/O.
+MemRegion mem_map[0x10000];
 
-// 0000	3FFF	16 KiB ROM bank 00	From cartridge, usually a fixed bank
-// 4000	7FFF	16 KiB ROM Bank 01–NN	From cartridge, switchable bank via
-// mapper (if any) 8000	9FFF	8 KiB Video RAM (VRAM)	In CGB mode, switchable
-// bank 0/1 A000	BFFF	8 KiB External RAM	From cartridge,
-// switchable bank if any C000	CFFF	4 KiB Work RAM (WRAM) D000	DFFF
-// 4 KiB Work RAM (WRAM)	In CGB mode, switchable bank 1–7 E000	FDFF
-// Echo RAM (mirror of C000–DDFF)	Nintendo says use of this area is
-// prohibited. FE00	FE9F	Object attribute memory (OAM) FEA0	FEFF
-// Not Usable	Nintendo says use of this area is prohibited. FF00	FF7F
-// I/O Registers FF80	FFFE	High RAM (HRAM) FFFF	FFFF	Interrupt Enable
-// register (IE)
+void mem_map_init(void) {
+  for (u16 i = 0x0000; i <= 0x3FFF; ++i)
+    mem_map[i] = ROM_BANK_0;
+  for (u16 i = 0x4000; i <= 0x7FFF; ++i)
+    mem_map[i] = ROM_BANK_1;
+  for (u16 i = 0x8000; i <= 0x97FF; ++i)
+    mem_map[i] = CHR_RAM;
+  for (u16 i = 0x9800; i <= 0x9BFF; ++i)
+    mem_map[i] = BG_MAP_1;
+  for (u16 i = 0x9C00; i <= 0x9FFF; ++i)
+    mem_map[i] = BG_MAP_2;
+  for (u16 i = 0xA000; i <= 0xBFFF; ++i)
+    mem_map[i] = CART_RAM;
+  for (u16 i = 0xC000; i <= 0xCFFF; ++i)
+    mem_map[i] = WRAM_BANK_0;
+  for (u16 i = 0xD000; i <= 0xDFFF; ++i)
+    mem_map[i] = WRAM_BANK_1_7;
+  for (u16 i = 0xE000; i <= 0xFDFF; ++i)
+    mem_map[i] = ECHO_RAM;
+  for (u16 i = 0xFE00; i <= 0xFE9F; ++i)
+    mem_map[i] = OAM;
+  for (u16 i = 0xFEA0; i <= 0xFEFF; ++i)
+    mem_map[i] = UNUSABLE;
+  for (u16 i = 0xFF00; i <= 0xFF7F; ++i)
+    mem_map[i] = IO;
+  for (u16 i = 0xFF80; i <= 0xFFFE; ++i)
+    mem_map[i] = HRAM;
 
-// I/O RANGES
-// $FF00		DMG	Joypad input
-// $FF01	$FF02	DMG	Serial transfer
-// $FF04	$FF07	DMG	Timer and divider
-// $FF0F		DMG	Interrupts
-// $FF10	$FF26	DMG	Audio
-// $FF30	$FF3F	DMG	Wave pattern
-// $FF40	$FF4B	DMG	LCD Control, Status, Position, Scrolling, and
-// Palettes $FF4F		CGB	VRAM Bank Select $FF50		DMG
-// Boot ROM mapping control $FF51	$FF55	CGB	VRAM DMA $FF68	$FF6B
-// CGB	BG / OBJ Palettes $FF70		CGB	WRAM Bank Select
+  mem_map[0xFFFF] = IE;
+}
 
-uint8_t bus_read(uint16_t address) {
-  if (address < 0x8000) {
+u8 bus_read(u16 address) {
+  switch (mem_map[address]) {
+  case ROM_BANK_0:
+  case ROM_BANK_1:
     return cart_read(address);
+  case CHR_RAM:
+  case BG_MAP_1:
+  case BG_MAP_2:
+    return ppu_vram_read(address);
+  case CART_RAM:
+    return cart_read(address);
+  case WRAM_BANK_0:
+  case WRAM_BANK_1_7:
+    return wram_read(address);
+  case ECHO_RAM:
+    return wram_read(address - 0xE000);
+  case OAM: {
+    if (dma_transferring()) {
+      return 0xFF;
+    }
+
+    return ppu_oam_read(address);
   }
-
-  fprintf(stderr, "Not implemented");
-
+  case UNUSABLE:
+    return 0;
+  case IO:
+    return io_read(address);
+  case IE:
+    return cpu_get_ie_register();
+  case HRAM:
+    return hram_read(address);
+  }
   return 0;
 }
 
-void bus_write(void) {
-  fprintf(stderr, "Not implemented");
+void bus_write(u16 address, u8 value) {
+  switch (mem_map[address]) {
+  case ROM_BANK_0:
+  case ROM_BANK_1:
+    cart_write(address, value);
+    break;
+  case CHR_RAM:
+  case BG_MAP_1:
+  case BG_MAP_2:
+    ppu_vram_write(address, value);
+    break;
+  case CART_RAM:
+    cart_write(address, value);
+    break;
+  case WRAM_BANK_0:
+  case WRAM_BANK_1_7:
+    wram_write(address, value);
+    break;
+  case ECHO_RAM:
+    wram_write(address - 0xE000, value);
+    break;
+  case OAM: {
+    if (dma_transferring()) {
+      break;
+    }
+
+    ppu_oam_write(address, value);
+    break;
+  }
+  case UNUSABLE:
+    break;
+  case IO:
+    io_write(address, value);
+    break;
+  case IE:
+    cpu_set_ie_register(value);
+    break;
+  case HRAM:
+    hram_write(address, value);
+    break;
+  }
+}
+
+u16 bus_read16(u16 address) {
+  u16 lo = bus_read(address);
+  u16 hi = bus_read(address + 1);
+
+  return lo | (hi << 8);
+}
+
+void bus_write16(u16 address, u16 value) {
+  bus_write(address + 1, (value >> 8) & 0xFF);
+  bus_write(address, value & 0xFF);
 }
