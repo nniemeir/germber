@@ -5,25 +5,25 @@
 static lcd_context lcd;
 
 void palettes_init(void) {
-  static unsigned long colors_mono[4] = {0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555,
+  static unsigned long colors_grayscale[4] = {0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555,
                                          0xFF000000};
   static unsigned long colors_beige[4] = {0xFFFDF6E3, 0xFFDECBA4, 0xFF8B6E4B,
                                           0xFF3B2F2F};
   static unsigned long colors_forest[4] = {0xFFE8F5E9, 0xFF81C784, 0xFF388E3C,
                                            0xFF1B5E20};
   static unsigned long colors_vaporwave[4] = {
-      0xFFFFB7C5, // cotton candy pink
-      0xFFB0E0E6, // powder blue
-      0xFF9B59B6, // violet haze
-      0xFF2C3E50  // dark synth navy
+      0xFFFFB7C5,
+      0xFFB0E0E6, 
+      0xFF9B59B6, 
+      0xFF2C3E50  
   };
-  static unsigned long colors_cyber_ice[4] = {0xFFE0FFFF, 0xFF00CED1,
+  static unsigned long colors_blue[4] = {0xFFE0FFFF, 0xFF00CED1,
                                               0xFF4682B4, 0xFF2F4F4F};
-  lcd.available_palettes[0] = colors_mono;
+  lcd.available_palettes[0] = colors_grayscale;
   lcd.available_palettes[1] = colors_beige;
   lcd.available_palettes[2] = colors_forest;
   lcd.available_palettes[3] = colors_vaporwave;
-  lcd.available_palettes[4] = colors_cyber_ice;
+  lcd.available_palettes[4] = colors_blue;
   lcd.current_colors = lcd.available_palettes[0];
 }
 

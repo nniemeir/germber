@@ -51,7 +51,7 @@ lcd_context *lcd_get_context(void);
 #define LCDS_LYC (BIT(lcd_get_context()->lcds, 2))
 #define LCDS_LYC_SET(b) do { BIT_SET(lcd_get_context()->lcds, 2, b); } while(0);
 
-#define NUM_OF_PALETTES 4
+#define NUM_OF_PALETTES 5
 
 typedef enum {
     SS_HBLANK = (1 << 3),
