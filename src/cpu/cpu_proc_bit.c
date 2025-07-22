@@ -128,37 +128,37 @@ void proc_cb(void) {
 }
 
 void proc_rlca(void) {
-  u8 u = cpu_get_ctx()->regs.a;
+  u8 u = cpu_get_ctx()->regs.af.a;
   bool c = (u >> 7) & 1;
   u = (u << 1) | c;
-  cpu_get_ctx()->regs.a = u;
+  cpu_get_ctx()->regs.af.a = u;
 
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rrca(void) {
-  u8 b = cpu_get_ctx()->regs.a & 1;
-  cpu_get_ctx()->regs.a >>= 1;
-  cpu_get_ctx()->regs.a |= (b << 7);
+  u8 b = cpu_get_ctx()->regs.af.a & 1;
+  cpu_get_ctx()->regs.af.a >>= 1;
+  cpu_get_ctx()->regs.af.a |= (b << 7);
 
   cpu_set_flags(0, 0, 0, b);
 }
 
 void proc_rla(void) {
-  u8 u = cpu_get_ctx()->regs.a;
+  u8 u = cpu_get_ctx()->regs.af.a;
   u8 cf = CPU_FLAG_C;
   u8 c = (u >> 7) & 1;
 
-  cpu_get_ctx()->regs.a = (u << 1) | cf;
+  cpu_get_ctx()->regs.af.a = (u << 1) | cf;
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rra(void) {
   u8 carry = CPU_FLAG_C;
-  u8 new_c = cpu_get_ctx()->regs.a & 1;
+  u8 new_c = cpu_get_ctx()->regs.af.a & 1;
 
-  cpu_get_ctx()->regs.a >>= 1;
-  cpu_get_ctx()->regs.a |= (carry << 7);
+  cpu_get_ctx()->regs.af.a >>= 1;
+  cpu_get_ctx()->regs.af.a |= (carry << 7);
 
   cpu_set_flags(0, 0, 0, new_c);
 }

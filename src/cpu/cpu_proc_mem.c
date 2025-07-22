@@ -46,7 +46,7 @@ void proc_ldh(void) {
     cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1,
                 bus_read(0xFF00 | cpu_get_ctx()->fetched_data));
   } else {
-    bus_write(cpu_get_ctx()->mem_dest, cpu_get_ctx()->regs.a);
+    bus_write(cpu_get_ctx()->mem_dest, cpu_get_ctx()->regs.af.a);
   }
 
   emu_cycles(1);

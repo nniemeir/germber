@@ -11,12 +11,12 @@ cpu_ctx cpu = {0};
 cpu_ctx *cpu_get_ctx(void) { return &cpu; }
 
 void cpu_init(void) {
-  cpu.regs.pc = 0x100;
+  cpu.regs.af.af = 0xB001;
+  cpu.regs.bc.bc = 0x1300;
+  cpu.regs.de.de = 0xD800;
+  cpu.regs.hl.hl = 0x4D01;
   cpu.regs.sp = 0xFFFE;
-  *((short *)&cpu.regs.a) = 0xB001;
-  *((short *)&cpu.regs.b) = 0x1300;
-  *((short *)&cpu.regs.d) = 0xD800;
-  *((short *)&cpu.regs.h) = 0x4D01;
+  cpu.regs.pc = 0x100;
   cpu.ie_register = 0;
   cpu.int_flags = 0;
   cpu.int_master_enabled = false;
@@ -50,10 +50,10 @@ bool cpu_step(void) {
 
     if (emu_get_ctx()->debug_mode) {
       char flags[16];
-      snprintf(flags, 16, "%c%c%c%c", cpu.regs.f & (1 << 7) ? 'Z' : '-',
-               cpu.regs.f & (1 << 6) ? 'N' : '-',
-               cpu.regs.f & (1 << 5) ? 'H' : '-',
-               cpu.regs.f & (1 << 4) ? 'C' : '-');
+      snprintf(flags, 16, "%c%c%c%c", cpu.regs.af.f & (1 << 7) ? 'Z' : '-',
+               cpu.regs.af.f & (1 << 6) ? 'N' : '-',
+               cpu.regs.af.f & (1 << 5) ? 'H' : '-',
+               cpu.regs.af.f & (1 << 4) ? 'C' : '-');
 
       char inst[16];
       inst_to_str(&cpu, inst);
@@ -61,8 +61,8 @@ bool cpu_step(void) {
       printf("%08lX - %04X: %-12s (%02X %02X %02X) A: %02X F: %s BC: %02X%02X "
              "DE: %02X%02X HL: %02X%02X\n",
              emu_get_ctx()->ticks, pc, inst, cpu.cur_opcode, bus_read(pc + 1),
-             bus_read(pc + 2), cpu.regs.a, flags, cpu.regs.b, cpu.regs.c,
-             cpu.regs.d, cpu.regs.e, cpu.regs.h, cpu.regs.l);
+             bus_read(pc + 2), cpu.regs.af.a, flags, cpu.regs.bc.b, cpu.regs.bc.c,
+             cpu.regs.de.d, cpu.regs.de.e, cpu.regs.hl.h, cpu.regs.hl.l);
     }
 
     if (cpu.cur_inst == NULL) {

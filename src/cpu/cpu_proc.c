@@ -8,19 +8,19 @@
 
 void cpu_set_flags(int8_t z, int8_t n, int8_t h, int8_t c) {
   if (z != -1) {
-    BIT_SET(cpu_get_ctx()->regs.f, 7, z);
+    BIT_SET(cpu_get_ctx()->regs.af.f, 7, z);
   }
 
   if (n != -1) {
-    BIT_SET(cpu_get_ctx()->regs.f, 6, n);
+    BIT_SET(cpu_get_ctx()->regs.af.f, 6, n);
   }
 
   if (h != -1) {
-    BIT_SET(cpu_get_ctx()->regs.f, 5, h);
+    BIT_SET(cpu_get_ctx()->regs.af.f, 5, h);
   }
 
   if (c != -1) {
-    BIT_SET(cpu_get_ctx()->regs.f, 4, c);
+    BIT_SET(cpu_get_ctx()->regs.af.f, 4, c);
   }
 }
 

@@ -6,20 +6,48 @@
 #include <cpu/reg_types.h>
 
 #define CPU_DEBUG 0
-#define CPU_FLAG_Z BIT(cpu_get_ctx()->regs.f, 7)
-#define CPU_FLAG_N BIT(cpu_get_ctx()->regs.f, 6)
-#define CPU_FLAG_H BIT(cpu_get_ctx()->regs.f, 5)
-#define CPU_FLAG_C BIT(cpu_get_ctx()->regs.f, 4)
+#define CPU_FLAG_Z BIT(cpu_get_ctx()->regs.af.f, 7)
+#define CPU_FLAG_N BIT(cpu_get_ctx()->regs.af.f, 6)
+#define CPU_FLAG_H BIT(cpu_get_ctx()->regs.af.f, 5)
+#define CPU_FLAG_C BIT(cpu_get_ctx()->regs.af.f, 4)
+
+typedef union {
+  struct {
+    u8 f;
+    u8 a;
+  };
+  u16 af;
+} AF;
+
+typedef union {
+  struct {
+    u8 c;
+    u8 b;
+  };
+  u16 bc;
+} BC;
+
+typedef union {
+  struct {
+    u8 e;
+    u8 d;
+  };
+  u16 de;
+} DE;
+
+typedef union {
+  struct {
+    u8 l;
+    u8 h;
+  };
+  u16 hl;
+} HL;
 
 typedef struct {
-  u8 a;
-  u8 f;
-  u8 b;
-  u8 c;
-  u8 d;
-  u8 e;
-  u8 h;
-  u8 l;
+  AF af;
+  BC bc;
+  DE de;
+  HL hl;
   u16 pc;
   u16 sp;
 } cpu_registers;

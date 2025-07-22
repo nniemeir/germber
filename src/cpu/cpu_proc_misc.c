@@ -12,7 +12,7 @@ void proc_none(void) {
 void proc_nop(void) {}
 
 void proc_cpl(void) {
-  cpu_get_ctx()->regs.a = ~cpu_get_ctx()->regs.a;
+  cpu_get_ctx()->regs.af.a = ~cpu_get_ctx()->regs.af.a;
   cpu_set_flags(-1, 1, 1, -1);
 }
 

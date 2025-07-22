@@ -5,25 +5,25 @@
 #include <cpu/instructions.h>
 
 void proc_and(void) {
-  cpu_get_ctx()->regs.a &= cpu_get_ctx()->fetched_data;
-  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 1, 0);
+  cpu_get_ctx()->regs.af.a &= cpu_get_ctx()->fetched_data;
+  cpu_set_flags(cpu_get_ctx()->regs.af.a == 0, 0, 1, 0);
 }
 
 void proc_xor(void) {
-  cpu_get_ctx()->regs.a ^= cpu_get_ctx()->fetched_data & 0xFF;
-  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 0, 0);
+  cpu_get_ctx()->regs.af.a ^= cpu_get_ctx()->fetched_data & 0xFF;
+  cpu_set_flags(cpu_get_ctx()->regs.af.a == 0, 0, 0, 0);
 }
 
 void proc_or(void) {
-  cpu_get_ctx()->regs.a |= cpu_get_ctx()->fetched_data & 0xFF;
-  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 0, 0);
+  cpu_get_ctx()->regs.af.a |= cpu_get_ctx()->fetched_data & 0xFF;
+  cpu_set_flags(cpu_get_ctx()->regs.af.a == 0, 0, 0, 0);
 }
 
 void proc_cp(void) {
-  int n = (int)cpu_get_ctx()->regs.a - (int)cpu_get_ctx()->fetched_data;
+  int n = (int)cpu_get_ctx()->regs.af.a - (int)cpu_get_ctx()->fetched_data;
 
   cpu_set_flags(n == 0, 1,
-                ((int)cpu_get_ctx()->regs.a & 0x0F) -
+                ((int)cpu_get_ctx()->regs.af.a & 0x0F) -
                         ((int)cpu_get_ctx()->fetched_data & 0x0F) <
                     0,
                 n < 0);
@@ -33,18 +33,18 @@ void proc_daa(void) {
   u8 u = 0;
   int fc = 0;
 
-  if (CPU_FLAG_H || (!CPU_FLAG_N && (cpu_get_ctx()->regs.a & 0xF) > 9)) {
+  if (CPU_FLAG_H || (!CPU_FLAG_N && (cpu_get_ctx()->regs.af.a & 0xF) > 9)) {
     u = 6;
   }
 
-  if (CPU_FLAG_C || (!CPU_FLAG_N && cpu_get_ctx()->regs.a > 0x99)) {
+  if (CPU_FLAG_C || (!CPU_FLAG_N && cpu_get_ctx()->regs.af.a > 0x99)) {
     u |= 0x60;
     fc = 1;
   }
 
-  cpu_get_ctx()->regs.a += CPU_FLAG_N ? -u : u;
+  cpu_get_ctx()->regs.af.a += CPU_FLAG_N ? -u : u;
 
-  cpu_set_flags(cpu_get_ctx()->regs.a == 0, -1, 0, fc);
+  cpu_set_flags(cpu_get_ctx()->regs.af.a == 0, -1, 0, fc);
 }
 
 void proc_inc(void) {
@@ -129,12 +129,12 @@ void proc_sbc(void) {
 
 void proc_adc(void) {
   u16 u = cpu_get_ctx()->fetched_data;
-  u16 a = cpu_get_ctx()->regs.a;
+  u16 a = cpu_get_ctx()->regs.af.a;
   u16 c = CPU_FLAG_C;
 
-  cpu_get_ctx()->regs.a = (a + u + c) & 0xFF;
+  cpu_get_ctx()->regs.af.a = (a + u + c) & 0xFF;
 
-  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF,
+  cpu_set_flags(cpu_get_ctx()->regs.af.a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF,
                 a + u + c > 0xFF);
 }
 

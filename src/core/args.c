@@ -33,7 +33,7 @@ void process_args(int argc, char *argv[]) {
     case 's':
       ui_get_ctx()->scale = atoi(optarg);
       if (ui_get_ctx()->scale < 1) {
-        fprintf(stderr, "Failed to convert scale argument to int.\n");
+        fprintf(stderr, "Invalid scale provided.\n");
         exit(EXIT_FAILURE);
       }
       break;
