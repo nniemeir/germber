@@ -21,6 +21,11 @@ u8 wram_read(u16 address) {
 void wram_write(u16 address, u8 value) {
   address -= 0xC000;
 
+  if (address >= 0x2000) {
+    printf("INVALID WRAM ADDR %08X\n", address + 0xC000);
+    exit(EXIT_FAILURE);
+  }
+
   ram.wram[address] = value;
 }
 

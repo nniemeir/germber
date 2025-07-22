@@ -86,8 +86,6 @@ u8 bus_read(u16 address) {
   case WRAM_BANK_0:
   case WRAM_BANK_1_7:
     return wram_read(address);
-  case ECHO_RAM:
-    return wram_read(address - 0xE000);
   case OAM: {
     if (dma_transferring()) {
       return 0xFF;
@@ -95,6 +93,7 @@ u8 bus_read(u16 address) {
 
     return ppu_oam_read(address);
   }
+  case ECHO_RAM:
   case UNUSABLE:
     return 0;
   case IO:
@@ -125,9 +124,6 @@ void bus_write(u16 address, u8 value) {
   case WRAM_BANK_1_7:
     wram_write(address, value);
     break;
-  case ECHO_RAM:
-    wram_write(address - 0xE000, value);
-    break;
   case OAM: {
     if (dma_transferring()) {
       break;
@@ -136,6 +132,7 @@ void bus_write(u16 address, u8 value) {
     ppu_oam_write(address, value);
     break;
   }
+  case ECHO_RAM:
   case UNUSABLE:
     break;
   case IO:

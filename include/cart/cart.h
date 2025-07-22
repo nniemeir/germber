@@ -51,6 +51,7 @@ void cart_write(u16 address, u8 value);
 
 // MBC
 bool cart_mbc1(void);
+bool cart_mbc3(void);
 void cart_setup_banking(void);
 
 #endif
