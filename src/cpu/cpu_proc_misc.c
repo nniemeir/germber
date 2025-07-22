@@ -1,17 +1,18 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/emu.h>
 #include <core/stack.h>
+#include <cpu/cpu.h>
+#include <cpu/instructions.h>
 
 void proc_none(void) {
   printf("INVALID INSTRUCTION!\n");
-  exit(-7);
+  exit(EXIT_FAILURE);
 }
 
 void proc_nop(void) {}
 
 void proc_cpl(void) {
-  get_cpu_ctx()->regs.a = ~get_cpu_ctx()->regs.a;
+  cpu_get_ctx()->regs.a = ~cpu_get_ctx()->regs.a;
   cpu_set_flags(-1, 1, 1, -1);
 }
 

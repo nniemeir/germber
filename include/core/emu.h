@@ -4,18 +4,18 @@
 #include <common.h>
 
 typedef struct {
-    bool paused;
-    bool running;
-    bool die;
-    bool debug_mode;
-    u64 ticks;
-} emu_context;
+  bool paused;
+  bool running;
+  bool die;
+  bool debug_mode;
+  u64 ticks;
+} emu_ctx;
 
 void cleanup(void);
 
 void *emu_runtime_loop(void *p);
 
-emu_context *emu_get_context(void);
+emu_ctx *emu_get_ctx(void);
 
 void emu_cycles(int cpu_cycles);
 

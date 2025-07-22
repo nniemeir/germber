@@ -1,6 +1,6 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/stack.h>
+#include <cpu/cpu.h>
 
 /*
     STACK

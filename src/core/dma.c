@@ -7,9 +7,9 @@ typedef struct {
   u8 byte;
   u8 value;
   u8 start_delay;
-} dma_context;
+} dma_ctx;
 
-static dma_context dma;
+static dma_ctx dma;
 
 void dma_start(u8 start) {
   dma.active = true;

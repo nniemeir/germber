@@ -1,5 +1,5 @@
 #include <cart/cart.h>
 
-cart_context cart;
+cart_ctx cart;
 
-cart_context *cart_get_context(void) { return &cart; }
+cart_ctx *cart_get_ctx(void) { return &cart; }

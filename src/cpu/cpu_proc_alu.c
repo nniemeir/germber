@@ -1,29 +1,30 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/emu.h>
 #include <core/stack.h>
+#include <cpu/cpu.h>
+#include <cpu/instructions.h>
 
 void proc_and(void) {
-  get_cpu_ctx()->regs.a &= get_cpu_ctx()->fetched_data;
-  cpu_set_flags(get_cpu_ctx()->regs.a == 0, 0, 1, 0);
+  cpu_get_ctx()->regs.a &= cpu_get_ctx()->fetched_data;
+  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 1, 0);
 }
 
 void proc_xor(void) {
-  get_cpu_ctx()->regs.a ^= get_cpu_ctx()->fetched_data & 0xFF;
-  cpu_set_flags(get_cpu_ctx()->regs.a == 0, 0, 0, 0);
+  cpu_get_ctx()->regs.a ^= cpu_get_ctx()->fetched_data & 0xFF;
+  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 0, 0);
 }
 
 void proc_or(void) {
-  get_cpu_ctx()->regs.a |= get_cpu_ctx()->fetched_data & 0xFF;
-  cpu_set_flags(get_cpu_ctx()->regs.a == 0, 0, 0, 0);
+  cpu_get_ctx()->regs.a |= cpu_get_ctx()->fetched_data & 0xFF;
+  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, 0, 0);
 }
 
 void proc_cp(void) {
-  int n = (int)get_cpu_ctx()->regs.a - (int)get_cpu_ctx()->fetched_data;
+  int n = (int)cpu_get_ctx()->regs.a - (int)cpu_get_ctx()->fetched_data;
 
   cpu_set_flags(n == 0, 1,
-                ((int)get_cpu_ctx()->regs.a & 0x0F) -
-                        ((int)get_cpu_ctx()->fetched_data & 0x0F) <
+                ((int)cpu_get_ctx()->regs.a & 0x0F) -
+                        ((int)cpu_get_ctx()->fetched_data & 0x0F) <
                     0,
                 n < 0);
 }
@@ -32,38 +33,38 @@ void proc_daa(void) {
   u8 u = 0;
   int fc = 0;
 
-  if (CPU_FLAG_H || (!CPU_FLAG_N && (get_cpu_ctx()->regs.a & 0xF) > 9)) {
+  if (CPU_FLAG_H || (!CPU_FLAG_N && (cpu_get_ctx()->regs.a & 0xF) > 9)) {
     u = 6;
   }
 
-  if (CPU_FLAG_C || (!CPU_FLAG_N && get_cpu_ctx()->regs.a > 0x99)) {
+  if (CPU_FLAG_C || (!CPU_FLAG_N && cpu_get_ctx()->regs.a > 0x99)) {
     u |= 0x60;
     fc = 1;
   }
 
-  get_cpu_ctx()->regs.a += CPU_FLAG_N ? -u : u;
+  cpu_get_ctx()->regs.a += CPU_FLAG_N ? -u : u;
 
-  cpu_set_flags(get_cpu_ctx()->regs.a == 0, -1, 0, fc);
+  cpu_set_flags(cpu_get_ctx()->regs.a == 0, -1, 0, fc);
 }
 
 void proc_inc(void) {
-  u16 val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) + 1;
+  u16 val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) + 1;
 
-  if (is_16_bit(get_cpu_ctx()->cur_inst->reg_1)) {
+  if (is_16_bit(cpu_get_ctx()->cur_inst->reg_1)) {
     emu_cycles(1);
   }
 
-  if (get_cpu_ctx()->cur_inst->reg_1 == RT_HL &&
-      get_cpu_ctx()->cur_inst->mode == AM_MR) {
+  if (cpu_get_ctx()->cur_inst->reg_1 == RT_HL &&
+      cpu_get_ctx()->cur_inst->mode == AM_MR) {
     val = bus_read(cpu_read_reg(RT_HL)) + 1;
     val &= 0xFF;
     bus_write(cpu_read_reg(RT_HL), val);
   } else {
-    cpu_set_reg(get_cpu_ctx()->cur_inst->reg_1, val);
-    val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1);
+    cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1, val);
+    val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1);
   }
 
-  if ((get_cpu_ctx()->cur_opcode & 0x03) == 0x03) {
+  if ((cpu_get_ctx()->cur_opcode & 0x03) == 0x03) {
     return;
   }
 
@@ -71,22 +72,22 @@ void proc_inc(void) {
 }
 
 void proc_dec(void) {
-  u16 val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) - 1;
+  u16 val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) - 1;
 
-  if (is_16_bit(get_cpu_ctx()->cur_inst->reg_1)) {
+  if (is_16_bit(cpu_get_ctx()->cur_inst->reg_1)) {
     emu_cycles(1);
   }
 
-  if (get_cpu_ctx()->cur_inst->reg_1 == RT_HL &&
-      get_cpu_ctx()->cur_inst->mode == AM_MR) {
+  if (cpu_get_ctx()->cur_inst->reg_1 == RT_HL &&
+      cpu_get_ctx()->cur_inst->mode == AM_MR) {
     val = bus_read(cpu_read_reg(RT_HL)) - 1;
     bus_write(cpu_read_reg(RT_HL), val);
   } else {
-    cpu_set_reg(get_cpu_ctx()->cur_inst->reg_1, val);
-    val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1);
+    cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1, val);
+    val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1);
   }
 
-  if ((get_cpu_ctx()->cur_opcode & 0x0B) == 0x0B) {
+  if ((cpu_get_ctx()->cur_opcode & 0x0B) == 0x0B) {
     return;
   }
 
@@ -94,92 +95,92 @@ void proc_dec(void) {
 }
 
 void proc_sub(void) {
-  u16 val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) -
-            get_cpu_ctx()->fetched_data;
+  u16 val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) -
+            cpu_get_ctx()->fetched_data;
 
   int z = val == 0;
-  int h = ((int)cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xF) -
-              ((int)get_cpu_ctx()->fetched_data & 0xF) <
+  int h = ((int)cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xF) -
+              ((int)cpu_get_ctx()->fetched_data & 0xF) <
           0;
-  int c = ((int)cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1)) -
-              ((int)get_cpu_ctx()->fetched_data) <
+  int c = ((int)cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1)) -
+              ((int)cpu_get_ctx()->fetched_data) <
           0;
 
-  cpu_set_reg(get_cpu_ctx()->cur_inst->reg_1, val);
+  cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1, val);
   cpu_set_flags(z, 1, h, c);
 }
 
 void proc_sbc(void) {
-  u8 val = get_cpu_ctx()->fetched_data + CPU_FLAG_C;
+  u8 val = cpu_get_ctx()->fetched_data + CPU_FLAG_C;
 
-  int z = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) - val == 0;
+  int z = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) - val == 0;
 
-  int h = ((int)cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xF) -
-              ((int)get_cpu_ctx()->fetched_data & 0xF) - ((int)CPU_FLAG_C) <
+  int h = ((int)cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xF) -
+              ((int)cpu_get_ctx()->fetched_data & 0xF) - ((int)CPU_FLAG_C) <
           0;
-  int c = ((int)cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1)) -
-              ((int)get_cpu_ctx()->fetched_data) - ((int)CPU_FLAG_C) <
+  int c = ((int)cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1)) -
+              ((int)cpu_get_ctx()->fetched_data) - ((int)CPU_FLAG_C) <
           0;
 
-  cpu_set_reg(get_cpu_ctx()->cur_inst->reg_1,
-              cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) - val);
+  cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1,
+              cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) - val);
   cpu_set_flags(z, 1, h, c);
 }
 
 void proc_adc(void) {
-  u16 u = get_cpu_ctx()->fetched_data;
-  u16 a = get_cpu_ctx()->regs.a;
+  u16 u = cpu_get_ctx()->fetched_data;
+  u16 a = cpu_get_ctx()->regs.a;
   u16 c = CPU_FLAG_C;
 
-  get_cpu_ctx()->regs.a = (a + u + c) & 0xFF;
+  cpu_get_ctx()->regs.a = (a + u + c) & 0xFF;
 
-  cpu_set_flags(get_cpu_ctx()->regs.a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF,
+  cpu_set_flags(cpu_get_ctx()->regs.a == 0, 0, (a & 0xF) + (u & 0xF) + c > 0xF,
                 a + u + c > 0xFF);
 }
 
 void proc_add(void) {
-  u32 val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) +
-            get_cpu_ctx()->fetched_data;
+  u32 val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) +
+            cpu_get_ctx()->fetched_data;
 
-  bool is_16bit = is_16_bit(get_cpu_ctx()->cur_inst->reg_1);
+  bool is_16bit = is_16_bit(cpu_get_ctx()->cur_inst->reg_1);
 
   if (is_16bit) {
     emu_cycles(1);
   }
 
-  if (get_cpu_ctx()->cur_inst->reg_1 == RT_SP) {
-    val = cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) +
-          (int8_t)get_cpu_ctx()->fetched_data;
+  if (cpu_get_ctx()->cur_inst->reg_1 == RT_SP) {
+    val = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) +
+          (int8_t)cpu_get_ctx()->fetched_data;
   }
 
   int z = (val & 0xFF) == 0;
-  int h = (cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xF) +
-              (get_cpu_ctx()->fetched_data & 0xF) >=
+  int h = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xF) +
+              (cpu_get_ctx()->fetched_data & 0xF) >=
           0x10;
-  int c = (int)(cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xFF) +
-              (int)(get_cpu_ctx()->fetched_data & 0xFF) >=
+  int c = (int)(cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xFF) +
+              (int)(cpu_get_ctx()->fetched_data & 0xFF) >=
           0x100;
 
   if (is_16bit) {
     z = -1;
-    h = (cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xFFF) +
-            (get_cpu_ctx()->fetched_data & 0xFFF) >=
+    h = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xFFF) +
+            (cpu_get_ctx()->fetched_data & 0xFFF) >=
         0x1000;
-    u32 n = ((u32)cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1)) +
-            ((u32)get_cpu_ctx()->fetched_data);
+    u32 n = ((u32)cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1)) +
+            ((u32)cpu_get_ctx()->fetched_data);
     c = n >= 0x10000;
   }
 
-  if (get_cpu_ctx()->cur_inst->reg_1 == RT_SP) {
+  if (cpu_get_ctx()->cur_inst->reg_1 == RT_SP) {
     z = 0;
-    h = (cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xF) +
-            (get_cpu_ctx()->fetched_data & 0xF) >=
+    h = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xF) +
+            (cpu_get_ctx()->fetched_data & 0xF) >=
         0x10;
-    c = (int)(cpu_read_reg(get_cpu_ctx()->cur_inst->reg_1) & 0xFF) +
-            (int)(get_cpu_ctx()->fetched_data & 0xFF) >=
+    c = (int)(cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xFF) +
+            (int)(cpu_get_ctx()->fetched_data & 0xFF) >=
         0x100;
   }
 
-  cpu_set_reg(get_cpu_ctx()->cur_inst->reg_1, val & 0xFFFF);
+  cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1, val & 0xFFFF);
   cpu_set_flags(z, 0, h, c);
 }

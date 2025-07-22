@@ -5,9 +5,9 @@ typedef struct {
   bool button_sel;
   bool dir_sel;
   gamepad_state controller;
-} gamepad_context;
+} gamepad_ctx;
 
-static gamepad_context gamepad = {0};
+static gamepad_ctx gamepad = {0};
 
 bool gamepad_button_sel(void) { return gamepad.button_sel; }
 
@@ -27,12 +27,15 @@ u8 gamepad_get_output(void) {
     if (gamepad_get_state()->start) {
       output &= ~(1 << 3);
     }
+
     if (gamepad_get_state()->select) {
       output &= ~(1 << 2);
     }
+
     if (gamepad_get_state()->a) {
       output &= ~(1 << 0);
     }
+
     if (gamepad_get_state()->b) {
       output &= ~(1 << 1);
     }
@@ -42,12 +45,15 @@ u8 gamepad_get_output(void) {
     if (gamepad_get_state()->left) {
       output &= ~(1 << 1);
     }
+
     if (gamepad_get_state()->right) {
       output &= ~(1 << 0);
     }
+
     if (gamepad_get_state()->up) {
       output &= ~(1 << 2);
     }
+
     if (gamepad_get_state()->down) {
       output &= ~(1 << 3);
     }

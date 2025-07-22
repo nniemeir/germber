@@ -1,17 +1,31 @@
-#include <core/bus.h>
 #include <cart/cart.h>
-#include <cpu/cpu.h>
+#include <core/bus.h>
 #include <core/dma.h>
 #include <core/emu.h>
+#include <cpu/cpu.h>
+#include <io/timer.h>
 #include <ppu/lcd.h>
 #include <ppu/ppu.h>
 #include <stdio.h>
-#include <io/timer.h>
 #include <ui.h>
 
-static emu_context emu;
+static emu_ctx emu;
 
-emu_context *emu_get_context(void) { return &emu; }
+emu_ctx *emu_get_ctx(void) { return &emu; }
+
+void cleanup(void) {
+  for (unsigned int i = 0; i < 16; i++) {
+    if (cart_get_ctx()->ram_banks[i]) {
+      free(cart_get_ctx()->ram_banks[i]);
+    }
+  }
+
+  if (cart_get_ctx()->rom_data) {
+    free(cart_get_ctx()->rom_data);
+  }
+
+  pipeline_fifo_reset();
+}
 
 void *emu_runtime_loop(void *p) {
   (void)p;

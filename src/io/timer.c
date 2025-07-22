@@ -1,9 +1,9 @@
 #include <cpu/interrupts.h>
 #include <io/timer.h>
 
-static timer_context timer = {0};
+static timer_ctx timer = {0};
 
-timer_context *timer_get_context(void) { return &timer; }
+timer_ctx *timer_get_ctx(void) { return &timer; }
 
 void timer_init(void) { timer.div = 0xAC00; }
 

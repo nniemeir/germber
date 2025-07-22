@@ -1,7 +1,7 @@
 #include <core/bus.h>
 #include <cpu/cpu.h>
 
-extern cpu_context cpu;
+extern cpu_ctx cpu;
 
 u16 reverse(u16 n) { return ((n & 0xFF00) >> 8) | ((n & 0x00FF) << 8); }
 
@@ -157,7 +157,3 @@ void cpu_set_reg8(reg_type rt, u8 val) {
 }
 
 cpu_registers *cpu_get_regs(void) { return &cpu.regs; }
-
-u8 cpu_get_int_flags(void) { return cpu.int_flags; }
-
-void cpu_set_int_flags(u8 value) { cpu.int_flags = value; }

@@ -1,42 +1,18 @@
+#include <cart/cart.h>
 #include <common.h>
 #include <core/emu.h>
 #include <ppu/lcd.h>
+#include <ui.h>
 
-struct string_num {
-  char *name;
-  int num;
-};
+void process_args(int argc, char *argv[]) {
+  char *rom_path = NULL;
+  ui_get_ctx()->scale = 4;
 
-struct string_num palettes_map[NUM_OF_PALETTES] = {{"grayscale", 0},
-                                                   {"beige", 1},
-                                                   {"forest", 2},
-                                                   {"vaporwave", 3},
-                                                   {"blue", 4}};
-
-bool set_palette(char *optarg) {
-  for (unsigned int i = 0; i < NUM_OF_PALETTES; i++) {
-    if (strcmp(optarg, palettes_map[i].name) == 0) {
-      lcd_get_context()->current_colors =
-          lcd_get_context()->available_palettes[palettes_map[i].num];
-      return true;
-    }
-  }
-  return false;
-}
-
-void list_palettes(void) {
-  printf("\nAvailable Palettes:\n");
-  for (unsigned int i = 0; i < NUM_OF_PALETTES; i++) {
-    printf("%s\n", palettes_map[i].name);
-  }
-}
-
-void process_args(int argc, char *argv[], char **rom_path, int *scale) {
   int c;
   while ((c = getopt(argc, argv, "dhp:r:s:")) != -1) {
     switch (c) {
     case 'd':
-      emu_get_context()->debug_mode = true;
+      emu_get_ctx()->debug_mode = true;
       break;
     case 'h':
       printf("Usage: clownish [options]\n");
@@ -52,11 +28,11 @@ void process_args(int argc, char *argv[], char **rom_path, int *scale) {
       }
       break;
     case 'r':
-      *rom_path = optarg;
+      rom_path = optarg;
       break;
     case 's':
-      *scale = atoi(optarg);
-      if (*scale == 0) {
+      ui_get_ctx()->scale = atoi(optarg);
+      if (ui_get_ctx()->scale < 1) {
         fprintf(stderr, "Failed to convert scale argument to int.\n");
         exit(EXIT_FAILURE);
       }
@@ -66,5 +42,15 @@ void process_args(int argc, char *argv[], char **rom_path, int *scale) {
               optopt);
       exit(EXIT_FAILURE);
     }
+  }
+
+  if (!rom_path) {
+    fprintf(stderr, "ROM path not specified.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (!cart_load(rom_path)) {
+    printf("Failed to load ROM file: %s\n", rom_path);
+    exit(EXIT_FAILURE);
   }
 }

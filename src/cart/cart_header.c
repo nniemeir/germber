@@ -1,9 +1,9 @@
 #include "cart/cart.h"
 #include "cart/licensees.h"
 
-extern cart_context cart;
+extern cart_ctx cart;
 
-const char *ROM_TYPES[] = {
+static const char *ROM_TYPES[] = {
     "ROM ONLY",
     "MBC1",
     "MBC1+RAM",
@@ -69,25 +69,23 @@ bool cart_verify_checksum(void) {
   }
 }
 
-char *get_rom_region(void) {
-u8 region_code = cart.rom_data[0x014A];
-if (region_code == 0) {
-  return "Japan";
-}
-return "Overseas only";
-}
+char *get_title(void) {
+  char *title = malloc(TITLE_LENGTH + 1);
+  memset(title, 0, TITLE_LENGTH + 1);
 
-void print_rom_info(void) {
-  char *title = get_title();
+  for (unsigned int i = 0; i < TITLE_LENGTH; i++) {
+    if (cart.rom_data[0x134 + i] != 0) {
+      title[i] = cart.rom_data[0x134 + i];
+    }
+  }
 
-  printf("Title: %s\n", get_title());
-  printf("Publisher: %s\n", get_publisher());
-  printf("Region : %s\n", get_rom_region());
-  printf("Type: %2.2X (%s)\n", cart.rom_data[0x0147], cart_type_name());
-  printf("ROM Size: %d KB\n", get_rom_size());
-  printf("RAM Size: %d KB\n", get_cart_ram());
+  if (title[0] == '\0') {
+    strcpy(title, "UNKNOWN");
+  }
 
-  free(title);
+  title[TITLE_LENGTH] = '\0';
+
+  return title;
 }
 
 char *get_publisher(void) {
@@ -109,7 +107,15 @@ char *get_publisher(void) {
   return "UNKNOWN";
 }
 
-const char *cart_type_name(void) {
+char *get_rom_region(void) {
+  u8 region_code = cart.rom_data[0x014A];
+  if (region_code == 0) {
+    return "Japan";
+  }
+  return "Overseas only";
+}
+
+const char *get_type_name(void) {
   if (cart.rom_data[0x0147] <= 0x22) {
     return ROM_TYPES[cart.rom_data[0x0147]];
   }
@@ -117,24 +123,7 @@ const char *cart_type_name(void) {
   return "UNKNOWN";
 }
 
-char *get_title(void) {
-  char *title = malloc(TITLE_LENGTH + 1);
-  memset(title, 0, TITLE_LENGTH + 1);
-  for (unsigned int i = 0; i < TITLE_LENGTH; i++) {
-    if (cart.rom_data[0x134 + i] != 0) {
-      title[i] = cart.rom_data[0x134 + i];
-    }
-  }
-  if (title[0] == '\0') {
-    strcpy(title, "UNKNOWN");
-  }
-  title[TITLE_LENGTH] = '\0';
-  return title;
-}
-
-int get_rom_size(void) {
-  return 32 * (1 << cart.rom_data[0x148]);
-}
+int get_rom_size(void) { return 32 * (1 << cart.rom_data[0x148]); }
 
 int get_cart_ram(void) {
   static const struct key_value ram_size_codes[NUM_OF_RAM_SIZE_CODES] = {
@@ -146,4 +135,17 @@ int get_cart_ram(void) {
     }
   }
   return 0;
+}
+
+void print_rom_info(void) {
+  char *title = get_title();
+
+  printf("Title: %s\n", get_title());
+  printf("Publisher: %s\n", get_publisher());
+  printf("Region : %s\n", get_rom_region());
+  printf("Type: %2.2X (%s)\n", cart.rom_data[0x0147], get_type_name());
+  printf("ROM Size: %d KB\n", get_rom_size());
+  printf("RAM Size: %d KB\n", get_cart_ram());
+
+  free(title);
 }

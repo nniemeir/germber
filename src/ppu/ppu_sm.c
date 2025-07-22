@@ -1,24 +1,20 @@
 #include <cart/cart.h>
+#include <core/emu.h>
 #include <cpu/cpu.h>
 #include <cpu/interrupts.h>
 #include <ppu/lcd.h>
 #include <ppu/ppu.h>
 #include <string.h>
-#include <core/emu.h>
-
-void pipeline_fifo_reset(void);
-void pipeline_process(void);
-bool window_visible(void);
 
 void increment_ly(void) {
-  if (window_visible() && lcd_get_context()->ly >= lcd_get_context()->win_y &&
-      lcd_get_context()->ly < lcd_get_context()->win_y + YRES) {
-    ppu_get_context()->window_line++;
+  if (window_visible() && lcd_get_ctx()->ly >= lcd_get_ctx()->win_y &&
+      lcd_get_ctx()->ly < lcd_get_ctx()->win_y + YRES) {
+    ppu_get_ctx()->window_line++;
   }
 
-  lcd_get_context()->ly++;
+  lcd_get_ctx()->ly++;
 
-  if (lcd_get_context()->ly == lcd_get_context()->ly_compare) {
+  if (lcd_get_ctx()->ly == lcd_get_ctx()->ly_compare) {
     LCDS_LYC_SET(1);
 
     if (LCDS_STAT_INT(SS_LYC)) {
@@ -30,21 +26,21 @@ void increment_ly(void) {
 }
 
 void load_line_sprites(void) {
-  int cur_y = lcd_get_context()->ly;
+  int cur_y = lcd_get_ctx()->ly;
 
   u8 sprite_height = LCDC_OBJ_HEIGHT;
-  memset(ppu_get_context()->line_entry_array, 0,
-         sizeof(ppu_get_context()->line_entry_array));
+  memset(ppu_get_ctx()->line_entry_array, 0,
+         sizeof(ppu_get_ctx()->line_entry_array));
 
   for (int i = 0; i < 40; i++) {
-    oam_entry e = ppu_get_context()->oam_ram[i];
+    oam_entry e = ppu_get_ctx()->oam_ram[i];
 
     if (!e.x) {
       // x = 0 means not visible...
       continue;
     }
 
-    if (ppu_get_context()->line_sprite_count >= 10) {
+    if (ppu_get_ctx()->line_sprite_count >= 10) {
       // max 10 sprites per line...
       break;
     }
@@ -53,22 +49,21 @@ void load_line_sprites(void) {
       // this sprite is on the current line.
 
       oam_line_entry *entry =
-          &ppu_get_context()
-               ->line_entry_array[ppu_get_context()->line_sprite_count++];
+          &ppu_get_ctx()->line_entry_array[ppu_get_ctx()->line_sprite_count++];
 
       entry->entry = e;
       entry->next = NULL;
 
-      if (!ppu_get_context()->line_sprites ||
-          ppu_get_context()->line_sprites->entry.x > e.x) {
-        entry->next = ppu_get_context()->line_sprites;
-        ppu_get_context()->line_sprites = entry;
+      if (!ppu_get_ctx()->line_sprites ||
+          ppu_get_ctx()->line_sprites->entry.x > e.x) {
+        entry->next = ppu_get_ctx()->line_sprites;
+        ppu_get_ctx()->line_sprites = entry;
         continue;
       }
 
       // do some sorting...
 
-      oam_line_entry *le = ppu_get_context()->line_sprites;
+      oam_line_entry *le = ppu_get_ctx()->line_sprites;
       oam_line_entry *prev = le;
 
       while (le) {
@@ -91,20 +86,20 @@ void load_line_sprites(void) {
 }
 
 void ppu_mode_oam(void) {
-  if (ppu_get_context()->line_ticks >= 80) {
+  if (ppu_get_ctx()->line_ticks >= 80) {
     LCDS_MODE_SET(MODE_XFER);
 
-    ppu_get_context()->pfc.cur_fetch_state = FS_TILE;
-    ppu_get_context()->pfc.line_x = 0;
-    ppu_get_context()->pfc.fetch_x = 0;
-    ppu_get_context()->pfc.pushed_x = 0;
-    ppu_get_context()->pfc.fifo_x = 0;
+    ppu_get_ctx()->pfc.cur_fetch_state = FS_TILE;
+    ppu_get_ctx()->pfc.line_x = 0;
+    ppu_get_ctx()->pfc.fetch_x = 0;
+    ppu_get_ctx()->pfc.pushed_x = 0;
+    ppu_get_ctx()->pfc.fifo_x = 0;
   }
 
-  if (ppu_get_context()->line_ticks == 1) {
+  if (ppu_get_ctx()->line_ticks == 1) {
     // read oam on the first tick only...
-    ppu_get_context()->line_sprites = 0;
-    ppu_get_context()->line_sprite_count = 0;
+    ppu_get_ctx()->line_sprites = 0;
+    ppu_get_ctx()->line_sprite_count = 0;
 
     load_line_sprites();
   }
@@ -113,7 +108,7 @@ void ppu_mode_oam(void) {
 void ppu_mode_xfer(void) {
   pipeline_process();
 
-  if (ppu_get_context()->pfc.pushed_x >= XRES) {
+  if (ppu_get_ctx()->pfc.pushed_x >= XRES) {
     pipeline_fifo_reset();
 
     LCDS_MODE_SET(MODE_HBLANK);
@@ -125,16 +120,16 @@ void ppu_mode_xfer(void) {
 }
 
 void ppu_mode_vblank(void) {
-  if (ppu_get_context()->line_ticks >= TICKS_PER_LINE) {
+  if (ppu_get_ctx()->line_ticks >= TICKS_PER_LINE) {
     increment_ly();
 
-    if (lcd_get_context()->ly >= LINES_PER_FRAME) {
+    if (lcd_get_ctx()->ly >= LINES_PER_FRAME) {
       LCDS_MODE_SET(MODE_OAM);
-      lcd_get_context()->ly = 0;
-      ppu_get_context()->window_line = 0;
+      lcd_get_ctx()->ly = 0;
+      ppu_get_ctx()->window_line = 0;
     }
 
-    ppu_get_context()->line_ticks = 0;
+    ppu_get_ctx()->line_ticks = 0;
   }
 }
 
@@ -144,10 +139,10 @@ static long start_timer = 0;
 static long frame_count = 0;
 
 void ppu_mode_hblank(void) {
-  if (ppu_get_context()->line_ticks >= TICKS_PER_LINE) {
+  if (ppu_get_ctx()->line_ticks >= TICKS_PER_LINE) {
     increment_ly();
 
-    if (lcd_get_context()->ly >= YRES) {
+    if (lcd_get_ctx()->ly >= YRES) {
       LCDS_MODE_SET(MODE_VBLANK);
 
       cpu_request_interrupt(IT_VBLANK);
@@ -156,7 +151,7 @@ void ppu_mode_hblank(void) {
         cpu_request_interrupt(IT_LCD_STAT);
       }
 
-      ppu_get_context()->current_frame++;
+      ppu_get_ctx()->current_frame++;
 
       // calc FPS...
       u32 end = get_ticks();
@@ -171,11 +166,11 @@ void ppu_mode_hblank(void) {
         start_timer = end;
         frame_count = 0;
 
-        if (emu_get_context()->debug_mode) {
+        if (emu_get_ctx()->debug_mode) {
           printf("FPS: %d\n", fps);
         }
 
-        if (cart_get_context()->need_save) {
+        if (cart_get_ctx()->need_save) {
           cart_battery_save();
         }
       }
@@ -187,6 +182,6 @@ void ppu_mode_hblank(void) {
       LCDS_MODE_SET(MODE_OAM);
     }
 
-    ppu_get_context()->line_ticks = 0;
+    ppu_get_ctx()->line_ticks = 0;
   }
 }

@@ -1,10 +1,11 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/emu.h>
 #include <core/stack.h>
+#include <cpu/cpu.h>
+#include <cpu/instructions.h>
 
 void proc_cb(void) {
-  u8 op = get_cpu_ctx()->fetched_data;
+  u8 op = cpu_get_ctx()->fetched_data;
   reg_type reg = decode_reg(op & 0b111);
   u8 bit = (op >> 3) & 0b111;
   u8 bit_op = (op >> 6) & 0b11;
@@ -127,37 +128,37 @@ void proc_cb(void) {
 }
 
 void proc_rlca(void) {
-  u8 u = get_cpu_ctx()->regs.a;
+  u8 u = cpu_get_ctx()->regs.a;
   bool c = (u >> 7) & 1;
   u = (u << 1) | c;
-  get_cpu_ctx()->regs.a = u;
+  cpu_get_ctx()->regs.a = u;
 
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rrca(void) {
-  u8 b = get_cpu_ctx()->regs.a & 1;
-  get_cpu_ctx()->regs.a >>= 1;
-  get_cpu_ctx()->regs.a |= (b << 7);
+  u8 b = cpu_get_ctx()->regs.a & 1;
+  cpu_get_ctx()->regs.a >>= 1;
+  cpu_get_ctx()->regs.a |= (b << 7);
 
   cpu_set_flags(0, 0, 0, b);
 }
 
 void proc_rla(void) {
-  u8 u = get_cpu_ctx()->regs.a;
+  u8 u = cpu_get_ctx()->regs.a;
   u8 cf = CPU_FLAG_C;
   u8 c = (u >> 7) & 1;
 
-  get_cpu_ctx()->regs.a = (u << 1) | cf;
+  cpu_get_ctx()->regs.a = (u << 1) | cf;
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rra(void) {
   u8 carry = CPU_FLAG_C;
-  u8 new_c = get_cpu_ctx()->regs.a & 1;
+  u8 new_c = cpu_get_ctx()->regs.a & 1;
 
-  get_cpu_ctx()->regs.a >>= 1;
-  get_cpu_ctx()->regs.a |= (carry << 7);
+  cpu_get_ctx()->regs.a >>= 1;
+  cpu_get_ctx()->regs.a |= (carry << 7);
 
   cpu_set_flags(0, 0, 0, new_c);
 }

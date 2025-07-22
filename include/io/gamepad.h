@@ -4,14 +4,14 @@
 #include <common.h>
 
 typedef struct {
-    bool start;
-    bool select;
-    bool a;
-    bool b;
-    bool up;
-    bool down;
-    bool left;
-    bool right;
+  bool start;
+  bool select;
+  bool a;
+  bool b;
+  bool up;
+  bool down;
+  bool left;
+  bool right;
 } gamepad_state;
 
 void gamepad_init(void);

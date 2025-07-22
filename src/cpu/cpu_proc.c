@@ -1,25 +1,26 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/emu.h>
 #include <core/stack.h>
+#include <cpu/cpu.h>
+#include <cpu/instructions.h>
 
 // processes CPU instructions...
 
 void cpu_set_flags(int8_t z, int8_t n, int8_t h, int8_t c) {
   if (z != -1) {
-    BIT_SET(get_cpu_ctx()->regs.f, 7, z);
+    BIT_SET(cpu_get_ctx()->regs.f, 7, z);
   }
 
   if (n != -1) {
-    BIT_SET(get_cpu_ctx()->regs.f, 6, n);
+    BIT_SET(cpu_get_ctx()->regs.f, 6, n);
   }
 
   if (h != -1) {
-    BIT_SET(get_cpu_ctx()->regs.f, 5, h);
+    BIT_SET(cpu_get_ctx()->regs.f, 5, h);
   }
 
   if (c != -1) {
-    BIT_SET(get_cpu_ctx()->regs.f, 4, c);
+    BIT_SET(cpu_get_ctx()->regs.f, 4, c);
   }
 }
 
@@ -39,7 +40,7 @@ bool check_cond(void) {
   bool z = CPU_FLAG_Z;
   bool c = CPU_FLAG_C;
 
-  switch (get_cpu_ctx()->cur_inst->cond) {
+  switch (cpu_get_ctx()->cur_inst->cond) {
   case CT_NONE:
     return true;
   case CT_C:
@@ -59,10 +60,10 @@ void goto_addr(u16 addr, bool pushpc) {
   if (check_cond()) {
     if (pushpc) {
       emu_cycles(2);
-      stack_push16(get_cpu_ctx()->regs.pc);
+      stack_push16(cpu_get_ctx()->regs.pc);
     }
 
-    get_cpu_ctx()->regs.pc = addr;
+    cpu_get_ctx()->regs.pc = addr;
     emu_cycles(1);
   }
 }

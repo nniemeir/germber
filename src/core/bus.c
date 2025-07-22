@@ -1,8 +1,10 @@
+#include "cpu/interrupts.h"
 #include <cart/cart.h>
 #include <core/bus.h>
 #include <core/dma.h>
 #include <core/ram.h>
 #include <cpu/cpu.h>
+#include <cpu/instructions.h>
 #include <io/io.h>
 #include <ppu/ppu.h>
 

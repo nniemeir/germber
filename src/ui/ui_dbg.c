@@ -1,23 +1,24 @@
 #include <core/bus.h>
-#include <ui.h>
 #include <ppu/lcd.h>
+#include <ui.h>
 
-void debug_window_init(ui_ctx *ui, int scale) {
-  SDL_CreateWindowAndRenderer(16 * 8 * scale, 32 * 8 * scale, 0,
+void debug_window_init(ui_ctx *ui) {
+  SDL_CreateWindowAndRenderer(16 * 8 * ui->scale, 32 * 8 * ui->scale, 0,
                               &ui->sdlDebugWindow, &ui->sdlDebugRenderer);
 
-  ui->debugScreen = SDL_CreateRGBSurface(
-      0, (16 * 8 * scale) + (16 * scale), (32 * 8 * scale) + (64 * scale), 32,
-      0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+  ui->debugScreen =
+      SDL_CreateRGBSurface(0, (16 * 8 * ui->scale) + (16 * ui->scale),
+                           (32 * 8 * ui->scale) + (64 * ui->scale), 32,
+                           0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 
   ui->sdlDebugTexture = SDL_CreateTexture(
       ui->sdlDebugRenderer, SDL_PIXELFORMAT_ARGB8888,
-      SDL_TEXTUREACCESS_STREAMING, (16 * 8 * scale) + (16 * scale),
-      (32 * 8 * scale) + (64 * scale));
+      SDL_TEXTUREACCESS_STREAMING, (16 * 8 * ui->scale) + (16 * ui->scale),
+      (32 * 8 * ui->scale) + (64 * ui->scale));
 
   int x, y;
   SDL_GetWindowPosition(ui->sdlWindow, &x, &y);
-  SDL_SetWindowPosition(ui->sdlDebugWindow, x + SCREEN_WIDTH + 10, y);
+  SDL_SetWindowPosition(ui->sdlDebugWindow, x + DEBUG_WINDOW_OFFSET, y);
 }
 
 void display_tile(SDL_Surface *surface, u16 startLocation, u16 tileNum, int x,
@@ -39,12 +40,12 @@ void display_tile(SDL_Surface *surface, u16 startLocation, u16 tileNum, int x,
       rc.w = scale;
       rc.h = scale;
 
-      SDL_FillRect(surface, &rc, lcd_get_context()->available_palettes[0][color]);
+      SDL_FillRect(surface, &rc, lcd_get_ctx()->available_palettes[0][color]);
     }
   }
 }
 
-void dbg_window_update(ui_ctx *ui, int scale) {
+void dbg_window_update(ui_ctx *ui) {
   int xDraw = 0;
   int yDraw = 0;
   int tileNum = 0;
@@ -61,13 +62,13 @@ void dbg_window_update(ui_ctx *ui, int scale) {
   // 384 tiles, 24 x 16
   for (int y = 0; y < 24; y++) {
     for (int x = 0; x < 16; x++) {
-      display_tile(ui->debugScreen, addr, tileNum, xDraw + (x * scale),
-                   yDraw + (y * scale), scale);
-      xDraw += (8 * scale);
+      display_tile(ui->debugScreen, addr, tileNum, xDraw + (x * ui->scale),
+                   yDraw + (y * ui->scale), ui->scale);
+      xDraw += (8 * ui->scale);
       tileNum++;
     }
 
-    yDraw += (8 * scale);
+    yDraw += (8 * ui->scale);
     xDraw = 0;
   }
 

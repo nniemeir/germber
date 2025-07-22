@@ -1,8 +1,8 @@
 #include <core/bus.h>
-#include <cpu/cpu.h>
 #include <core/emu.h>
+#include <cpu/cpu.h>
 
-extern cpu_context cpu;
+extern cpu_ctx cpu;
 
 void fetch_data(void) {
   cpu.mem_dest = 0;
@@ -169,7 +169,7 @@ void fetch_data(void) {
   default:
     printf("Unknown Addressing Mode! %d (%02X)\n", cpu.cur_inst->mode,
            cpu.cur_opcode);
-    exit(-7);
+    exit(EXIT_FAILURE);
     return;
   }
 }

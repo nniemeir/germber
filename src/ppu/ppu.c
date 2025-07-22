@@ -6,9 +6,9 @@
 void pipeline_fifo_reset(void);
 void pipeline_process(void);
 
-static ppu_context ppu;
+static ppu_ctx ppu;
 
-ppu_context *ppu_get_context(void) { return &ppu; }
+ppu_ctx *ppu_get_ctx(void) { return &ppu; }
 
 void ppu_init(void) {
   ppu.current_frame = 0;

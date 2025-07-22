@@ -1,9 +1,10 @@
-#include <cpu/cpu.h>
 #include <core/dma.h>
+#include <cpu/cpu.h>
+#include <cpu/interrupts.h>
 #include <io/gamepad.h>
 #include <io/io.h>
-#include <ppu/lcd.h>
 #include <io/timer.h>
+#include <ppu/lcd.h>
 
 static char serial_data[2];
 

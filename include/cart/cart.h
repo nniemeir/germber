@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CART_H
+#define CART_H
 
 #include <common.h>
 
@@ -29,29 +30,27 @@ typedef struct {
   // for battery
   bool battery;   // has battery
   bool need_save; // should save battery backup.
-} cart_context;
+} cart_ctx;
 
-cart_context *cart_get_context(void);
+cart_ctx *cart_get_ctx(void);
 
-bool cart_load(char *filename);
-
-u8 cart_read(u16 address);
-void cart_write(u16 address, u8 value);
-
+// Battery
 bool cart_has_battery(void);
 void cart_battery_load(void);
 void cart_battery_save(void);
 
-
-char *get_publisher(void);
-const char *cart_type_name(void);
-char *get_title(void);
-int get_rom_size(void);
-int get_cart_ram(void);
+// Header
+bool is_valid_rom(void);
+bool cart_verify_checksum(void);
 void print_rom_info(void);
 
+// IO
+bool cart_load(char *filename);
+u8 cart_read(u16 address);
+void cart_write(u16 address, u8 value);
+
+// MBC
 bool cart_mbc1(void);
 void cart_setup_banking(void);
 
-bool cart_verify_checksum(void);
-bool is_valid_rom(void);
+#endif
