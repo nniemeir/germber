@@ -14,14 +14,23 @@ static emu_ctx emu;
 emu_ctx *emu_get_ctx(void) { return &emu; }
 
 void cleanup(void) {
+  cart_ctx *cart = cart_get_ctx();
   for (unsigned int i = 0; i < 16; i++) {
-    if (cart_get_ctx()->ram_banks[i]) {
-      free(cart_get_ctx()->ram_banks[i]);
+    if (cart->ram_banks[i]) {
+      free(cart->ram_banks[i]);
     }
   }
 
-  if (cart_get_ctx()->rom_data) {
-    free(cart_get_ctx()->rom_data);
+  if (cart->rom_data) {
+    free(cart->rom_data);
+  }
+
+  if (cart->battery_filename) {
+    free(cart->battery_filename);
+  }
+
+  if (cart->filename) {
+    free(cart->filename);
   }
 
   pipeline_fifo_reset();
@@ -54,10 +63,10 @@ void *emu_runtime_loop(void *p) {
   return 0;
 }
 
-void emu_cycles(int cpu_cycles) {
+void emu_cycles(unsigned int cpu_cycles) {
 
-  for (int i = 0; i < cpu_cycles; i++) {
-    for (int n = 0; n < 4; n++) {
+  for (unsigned int i = 0; i < cpu_cycles; i++) {
+    for (unsigned int n = 0; n < 4; n++) {
       emu.ticks++;
       timer_tick();
       ppu_tick();

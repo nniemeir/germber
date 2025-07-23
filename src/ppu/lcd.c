@@ -18,7 +18,7 @@ void lcd_init(void) {
   lcd.win_y = 0;
   lcd.win_x = 0;
 
-  for (int i = 0; i < 4; i++) {
+  for (unsigned int i = 0; i < 4; i++) {
     lcd.bg_colors[i] = lcd.current_colors[i];
     lcd.sp1_colors[i] = lcd.current_colors[i];
     lcd.sp2_colors[i] = lcd.current_colors[i];

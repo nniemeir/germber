@@ -7,20 +7,21 @@
 // processes CPU instructions...
 
 void cpu_set_flags(int8_t z, int8_t n, int8_t h, int8_t c) {
+  cpu_ctx *cpu = cpu_get_ctx();
   if (z != -1) {
-    BIT_SET(cpu_get_ctx()->regs.af.f, 7, z);
+    BIT_SET(cpu->regs.af.f, 7, z);
   }
 
   if (n != -1) {
-    BIT_SET(cpu_get_ctx()->regs.af.f, 6, n);
+    BIT_SET(cpu->regs.af.f, 6, n);
   }
 
   if (h != -1) {
-    BIT_SET(cpu_get_ctx()->regs.af.f, 5, h);
+    BIT_SET(cpu->regs.af.f, 5, h);
   }
 
   if (c != -1) {
-    BIT_SET(cpu_get_ctx()->regs.af.f, 4, c);
+    BIT_SET(cpu->regs.af.f, 4, c);
   }
 }
 
@@ -57,13 +58,14 @@ bool check_cond(void) {
 }
 
 void goto_addr(u16 addr, bool pushpc) {
+  cpu_ctx *cpu = cpu_get_ctx();
   if (check_cond()) {
     if (pushpc) {
       emu_cycles(2);
-      stack_push16(cpu_get_ctx()->regs.pc);
+      stack_push16(cpu->regs.pc);
     }
 
-    cpu_get_ctx()->regs.pc = addr;
+    cpu->regs.pc = addr;
     emu_cycles(1);
   }
 }

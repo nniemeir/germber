@@ -1,12 +1,12 @@
 #include <core/bus.h>
 #include <core/dbg.h>
 
-static char dbg_msg[1024] = {0};
+static char dbg_msg[DBG_MSG_MAX] = {0};
 static int msg_size = 0;
 
 void dbg_update(void) {
   if (bus_read(0xFF02) == 0x81) {
-    char c = bus_read(0xFF01);
+    const char c = bus_read(0xFF01);
 
     dbg_msg[msg_size++] = c;
 

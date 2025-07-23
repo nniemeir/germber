@@ -34,7 +34,8 @@ static void execute(void) {
   IN_PROC proc = inst_get_processor(cpu.cur_inst->type);
 
   if (!proc) {
-    NO_IMPL
+    cleanup();
+    exit(EXIT_FAILURE);
   }
 
   proc();
@@ -61,12 +62,14 @@ bool cpu_step(void) {
       printf("%08lX - %04X: %-12s (%02X %02X %02X) A: %02X F: %s BC: %02X%02X "
              "DE: %02X%02X HL: %02X%02X\n",
              emu_get_ctx()->ticks, pc, inst, cpu.cur_opcode, bus_read(pc + 1),
-             bus_read(pc + 2), cpu.regs.af.a, flags, cpu.regs.bc.b, cpu.regs.bc.c,
-             cpu.regs.de.d, cpu.regs.de.e, cpu.regs.hl.h, cpu.regs.hl.l);
+             bus_read(pc + 2), cpu.regs.af.a, flags, cpu.regs.bc.b,
+             cpu.regs.bc.c, cpu.regs.de.d, cpu.regs.de.e, cpu.regs.hl.h,
+             cpu.regs.hl.l);
     }
 
     if (cpu.cur_inst == NULL) {
       printf("Unknown Instruction! %02X\n", cpu.cur_opcode);
+      cleanup();
       exit(EXIT_FAILURE);
     }
 

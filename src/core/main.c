@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
   emu_get_ctx()->debug_mode = false;
 
   palettes_init();
+  cart_memory_init();
 
   process_args(argc, argv);
 
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
 
   if (pthread_create(&emu_thread, NULL, emu_runtime_loop, NULL)) {
     fprintf(stderr, "FAILED TO START MAIN CPU THREAD!\n");
+    cleanup();
     exit(EXIT_FAILURE);
   }
 

@@ -7,9 +7,11 @@
 #include <string.h>
 
 void increment_ly(void) {
+  ppu_ctx *ppu = ppu_get_ctx();
+
   if (window_visible() && lcd_get_ctx()->ly >= lcd_get_ctx()->win_y &&
       lcd_get_ctx()->ly < lcd_get_ctx()->win_y + YRES) {
-    ppu_get_ctx()->window_line++;
+    ppu->window_line++;
   }
 
   lcd_get_ctx()->ly++;
@@ -26,21 +28,22 @@ void increment_ly(void) {
 }
 
 void load_line_sprites(void) {
+  ppu_ctx *ppu = ppu_get_ctx();
+
   int cur_y = lcd_get_ctx()->ly;
 
   u8 sprite_height = LCDC_OBJ_HEIGHT;
-  memset(ppu_get_ctx()->line_entry_array, 0,
-         sizeof(ppu_get_ctx()->line_entry_array));
+  memset(ppu->line_entry_array, 0, sizeof(ppu->line_entry_array));
 
-  for (int i = 0; i < 40; i++) {
-    oam_entry e = ppu_get_ctx()->oam_ram[i];
+  for (unsigned int i = 0; i < 40; i++) {
+    oam_entry e = ppu->oam_ram[i];
 
     if (!e.x) {
       // x = 0 means not visible...
       continue;
     }
 
-    if (ppu_get_ctx()->line_sprite_count >= 10) {
+    if (ppu->line_sprite_count >= 10) {
       // max 10 sprites per line...
       break;
     }
@@ -48,22 +51,20 @@ void load_line_sprites(void) {
     if (e.y <= cur_y + 16 && e.y + sprite_height > cur_y + 16) {
       // this sprite is on the current line.
 
-      oam_line_entry *entry =
-          &ppu_get_ctx()->line_entry_array[ppu_get_ctx()->line_sprite_count++];
+      oam_line_entry *entry = &ppu->line_entry_array[ppu->line_sprite_count++];
 
       entry->entry = e;
       entry->next = NULL;
 
-      if (!ppu_get_ctx()->line_sprites ||
-          ppu_get_ctx()->line_sprites->entry.x > e.x) {
-        entry->next = ppu_get_ctx()->line_sprites;
-        ppu_get_ctx()->line_sprites = entry;
+      if (!ppu->line_sprites || ppu->line_sprites->entry.x > e.x) {
+        entry->next = ppu->line_sprites;
+        ppu->line_sprites = entry;
         continue;
       }
 
       // do some sorting...
 
-      oam_line_entry *le = ppu_get_ctx()->line_sprites;
+      oam_line_entry *le = ppu->line_sprites;
       oam_line_entry *prev = le;
 
       while (le) {
@@ -86,20 +87,22 @@ void load_line_sprites(void) {
 }
 
 void ppu_mode_oam(void) {
-  if (ppu_get_ctx()->line_ticks >= 80) {
+  ppu_ctx *ppu = ppu_get_ctx();
+
+  if (ppu->line_ticks >= 80) {
     LCDS_MODE_SET(MODE_XFER);
 
-    ppu_get_ctx()->pfc.cur_fetch_state = FS_TILE;
-    ppu_get_ctx()->pfc.line_x = 0;
-    ppu_get_ctx()->pfc.fetch_x = 0;
-    ppu_get_ctx()->pfc.pushed_x = 0;
-    ppu_get_ctx()->pfc.fifo_x = 0;
+    ppu->pfc.cur_fetch_state = FS_TILE;
+    ppu->pfc.line_x = 0;
+    ppu->pfc.fetch_x = 0;
+    ppu->pfc.pushed_x = 0;
+    ppu->pfc.fifo_x = 0;
   }
 
-  if (ppu_get_ctx()->line_ticks == 1) {
+  if (ppu->line_ticks == 1) {
     // read oam on the first tick only...
-    ppu_get_ctx()->line_sprites = 0;
-    ppu_get_ctx()->line_sprite_count = 0;
+    ppu->line_sprites = 0;
+    ppu->line_sprite_count = 0;
 
     load_line_sprites();
   }
@@ -120,16 +123,18 @@ void ppu_mode_xfer(void) {
 }
 
 void ppu_mode_vblank(void) {
-  if (ppu_get_ctx()->line_ticks >= TICKS_PER_LINE) {
+  ppu_ctx *ppu = ppu_get_ctx();
+
+  if (ppu->line_ticks >= TICKS_PER_LINE) {
     increment_ly();
 
     if (lcd_get_ctx()->ly >= LINES_PER_FRAME) {
       LCDS_MODE_SET(MODE_OAM);
       lcd_get_ctx()->ly = 0;
-      ppu_get_ctx()->window_line = 0;
+      ppu->window_line = 0;
     }
 
-    ppu_get_ctx()->line_ticks = 0;
+    ppu->line_ticks = 0;
   }
 }
 
@@ -139,7 +144,9 @@ static long start_timer = 0;
 static long frame_count = 0;
 
 void ppu_mode_hblank(void) {
-  if (ppu_get_ctx()->line_ticks >= TICKS_PER_LINE) {
+  ppu_ctx *ppu = ppu_get_ctx();
+
+  if (ppu->line_ticks >= TICKS_PER_LINE) {
     increment_ly();
 
     if (lcd_get_ctx()->ly >= YRES) {
@@ -151,7 +158,7 @@ void ppu_mode_hblank(void) {
         cpu_request_interrupt(IT_LCD_STAT);
       }
 
-      ppu_get_ctx()->current_frame++;
+      ppu->current_frame++;
 
       // calc FPS...
       u32 end = get_ticks();
@@ -182,6 +189,6 @@ void ppu_mode_hblank(void) {
       LCDS_MODE_SET(MODE_OAM);
     }
 
-    ppu_get_ctx()->line_ticks = 0;
+    ppu->line_ticks = 0;
   }
 }

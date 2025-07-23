@@ -5,7 +5,8 @@
 #include <cpu/instructions.h>
 
 void proc_cb(void) {
-  u8 op = cpu_get_ctx()->fetched_data;
+  cpu_ctx *cpu = cpu_get_ctx();
+  u8 op = cpu->fetched_data;
   reg_type reg = decode_reg(op & 0b111);
   u8 bit = (op >> 3) & 0b111;
   u8 bit_op = (op >> 6) & 0b11;
@@ -124,41 +125,46 @@ void proc_cb(void) {
   }
 
   fprintf(stderr, "ERROR: INVALID CB: %02X", op);
-  NO_IMPL
+  cleanup();
+  exit(EXIT_FAILURE);
 }
 
 void proc_rlca(void) {
-  u8 u = cpu_get_ctx()->regs.af.a;
+  cpu_ctx *cpu = cpu_get_ctx();
+  u8 u = cpu->regs.af.a;
   bool c = (u >> 7) & 1;
   u = (u << 1) | c;
-  cpu_get_ctx()->regs.af.a = u;
+  cpu->regs.af.a = u;
 
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rrca(void) {
-  u8 b = cpu_get_ctx()->regs.af.a & 1;
-  cpu_get_ctx()->regs.af.a >>= 1;
-  cpu_get_ctx()->regs.af.a |= (b << 7);
+  cpu_ctx *cpu = cpu_get_ctx();
+  u8 b = cpu->regs.af.a & 1;
+  cpu->regs.af.a >>= 1;
+  cpu->regs.af.a |= (b << 7);
 
   cpu_set_flags(0, 0, 0, b);
 }
 
 void proc_rla(void) {
-  u8 u = cpu_get_ctx()->regs.af.a;
+  cpu_ctx *cpu = cpu_get_ctx();
+  u8 u = cpu->regs.af.a;
   u8 cf = CPU_FLAG_C;
   u8 c = (u >> 7) & 1;
 
-  cpu_get_ctx()->regs.af.a = (u << 1) | cf;
+  cpu->regs.af.a = (u << 1) | cf;
   cpu_set_flags(0, 0, 0, c);
 }
 
 void proc_rra(void) {
+  cpu_ctx *cpu = cpu_get_ctx();
   u8 carry = CPU_FLAG_C;
-  u8 new_c = cpu_get_ctx()->regs.af.a & 1;
+  u8 new_c = cpu->regs.af.a & 1;
 
-  cpu_get_ctx()->regs.af.a >>= 1;
-  cpu_get_ctx()->regs.af.a |= (carry << 7);
+  cpu->regs.af.a >>= 1;
+  cpu->regs.af.a |= (carry << 7);
 
   cpu_set_flags(0, 0, 0, new_c);
 }

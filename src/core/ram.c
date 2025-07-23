@@ -12,6 +12,7 @@ u8 wram_read(u16 address) {
 
   if (address >= 0x2000) {
     printf("INVALID WRAM ADDR %08X\n", address + 0xC000);
+    cleanup();
     exit(EXIT_FAILURE);
   }
 
@@ -23,6 +24,7 @@ void wram_write(u16 address, u8 value) {
 
   if (address >= 0x2000) {
     printf("INVALID WRAM ADDR %08X\n", address + 0xC000);
+    cleanup();
     exit(EXIT_FAILURE);
   }
 

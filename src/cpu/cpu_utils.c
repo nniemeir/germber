@@ -1,93 +1,95 @@
 #include <core/bus.h>
 #include <cpu/cpu.h>
 
-extern cpu_ctx cpu;
-
 u16 reverse(u16 n) { return ((n & 0xFF00) >> 8) | ((n & 0x00FF) << 8); }
 
 u16 cpu_read_reg(reg_type rt) {
+  cpu_ctx *cpu = cpu_get_ctx();
+
   switch (rt) {
   case RT_A:
-    return cpu.regs.af.a;
+    return cpu->regs.af.a;
   case RT_F:
-    return cpu.regs.af.f;
+    return cpu->regs.af.f;
   case RT_B:
-    return cpu.regs.bc.b;
+    return cpu->regs.bc.b;
   case RT_C:
-    return cpu.regs.bc.c;
+    return cpu->regs.bc.c;
   case RT_D:
-    return cpu.regs.de.d;
+    return cpu->regs.de.d;
   case RT_E:
-    return cpu.regs.de.e;
+    return cpu->regs.de.e;
   case RT_H:
-    return cpu.regs.hl.h;
+    return cpu->regs.hl.h;
   case RT_L:
-    return cpu.regs.hl.l;
+    return cpu->regs.hl.l;
 
   case RT_AF:
-    return cpu.regs.af.af;
+    return cpu->regs.af.af;
   case RT_BC:
-    return cpu.regs.bc.bc;
+    return cpu->regs.bc.bc;
   case RT_DE:
-    return cpu.regs.de.de;
+    return cpu->regs.de.de;
   case RT_HL:
-    return cpu.regs.hl.hl;
+    return cpu->regs.hl.hl;
 
   case RT_PC:
-    return cpu.regs.pc;
+    return cpu->regs.pc;
   case RT_SP:
-    return cpu.regs.sp;
+    return cpu->regs.sp;
   default:
     return 0;
   }
 }
 
 void cpu_set_reg(reg_type rt, u16 val) {
+  cpu_ctx *cpu = cpu_get_ctx();
+
   switch (rt) {
   case RT_A:
-    cpu.regs.af.a = val & 0xFF;
+    cpu->regs.af.a = val & 0xFF;
     break;
   case RT_F:
-    cpu.regs.af.f = val & 0xFF;
+    cpu->regs.af.f = val & 0xFF;
     break;
   case RT_B:
-    cpu.regs.bc.b = val & 0xFF;
+    cpu->regs.bc.b = val & 0xFF;
     break;
   case RT_C: {
-    cpu.regs.bc.c = val & 0xFF;
+    cpu->regs.bc.c = val & 0xFF;
   } break;
   case RT_D:
-    cpu.regs.de.d = val & 0xFF;
+    cpu->regs.de.d = val & 0xFF;
     break;
   case RT_E:
-    cpu.regs.de.e = val & 0xFF;
+    cpu->regs.de.e = val & 0xFF;
     break;
   case RT_H:
-    cpu.regs.hl.h = val & 0xFF;
+    cpu->regs.hl.h = val & 0xFF;
     break;
   case RT_L:
-    cpu.regs.hl.l = val & 0xFF;
+    cpu->regs.hl.l = val & 0xFF;
     break;
 
   case RT_AF:
-    cpu.regs.af.af = val;
+    cpu->regs.af.af = val;
     break;
   case RT_BC:
-    cpu.regs.bc.bc = val;
+    cpu->regs.bc.bc = val;
     break;
   case RT_DE:
-    cpu.regs.de.de = val;
+    cpu->regs.de.de = val;
     break;
   case RT_HL: {
-    cpu.regs.hl.hl = val;
+    cpu->regs.hl.hl = val;
     break;
   }
 
   case RT_PC:
-    cpu.regs.pc = val;
+    cpu->regs.pc = val;
     break;
   case RT_SP:
-    cpu.regs.sp = val;
+    cpu->regs.sp = val;
     break;
   case RT_NONE:
     break;
@@ -95,65 +97,71 @@ void cpu_set_reg(reg_type rt, u16 val) {
 }
 
 u8 cpu_read_reg8(reg_type rt) {
+  cpu_ctx *cpu = cpu_get_ctx();
+
   switch (rt) {
   case RT_A:
-    return cpu.regs.af.a;
+    return cpu->regs.af.a;
   case RT_F:
-    return cpu.regs.af.f;
+    return cpu->regs.af.f;
   case RT_B:
-    return cpu.regs.bc.b;
+    return cpu->regs.bc.b;
   case RT_C:
-    return cpu.regs.bc.c;
+    return cpu->regs.bc.c;
   case RT_D:
-    return cpu.regs.de.d;
+    return cpu->regs.de.d;
   case RT_E:
-    return cpu.regs.de.e;
+    return cpu->regs.de.e;
   case RT_H:
-    return cpu.regs.hl.h;
+    return cpu->regs.hl.h;
   case RT_L:
-    return cpu.regs.hl.l;
+    return cpu->regs.hl.l;
   case RT_HL: {
     return bus_read(cpu_read_reg(RT_HL));
   }
   default:
     printf("**ERR INVALID REG8: %d\n", rt);
-    NO_IMPL
+    cleanup();
+    exit(EXIT_FAILURE);
   }
 }
 
 void cpu_set_reg8(reg_type rt, u8 val) {
+  cpu_ctx *cpu = cpu_get_ctx();
+
   switch (rt) {
   case RT_A:
-    cpu.regs.af.a = val & 0xFF;
+    cpu->regs.af.a = val & 0xFF;
     break;
   case RT_F:
-    cpu.regs.af.f = val & 0xFF;
+    cpu->regs.af.f = val & 0xFF;
     break;
   case RT_B:
-    cpu.regs.bc.b = val & 0xFF;
+    cpu->regs.bc.b = val & 0xFF;
     break;
   case RT_C:
-    cpu.regs.bc.c = val & 0xFF;
+    cpu->regs.bc.c = val & 0xFF;
     break;
   case RT_D:
-    cpu.regs.de.d = val & 0xFF;
+    cpu->regs.de.d = val & 0xFF;
     break;
   case RT_E:
-    cpu.regs.de.e = val & 0xFF;
+    cpu->regs.de.e = val & 0xFF;
     break;
   case RT_H:
-    cpu.regs.hl.h = val & 0xFF;
+    cpu->regs.hl.h = val & 0xFF;
     break;
   case RT_L:
-    cpu.regs.hl.l = val & 0xFF;
+    cpu->regs.hl.l = val & 0xFF;
     break;
   case RT_HL:
     bus_write(cpu_read_reg(RT_HL), val);
     break;
   default:
     printf("**ERR INVALID REG8: %d\n", rt);
-    NO_IMPL
+    cleanup();
+    exit(EXIT_FAILURE);
   }
 }
 
-cpu_registers *cpu_get_regs(void) { return &cpu.regs; }
+cpu_registers *cpu_get_regs(void) { return &cpu_get_ctx()->regs; }

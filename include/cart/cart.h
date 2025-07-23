@@ -10,7 +10,7 @@
 #define TITLE_LENGTH 0x10
 
 typedef struct {
-  char filename[1024];
+  char *filename;
   u32 rom_size;
   u8 *rom_data;
 
@@ -28,16 +28,20 @@ typedef struct {
   u8 *ram_banks[16]; // all ram banks
 
   // for battery
+  char *battery_filename;
   bool battery;   // has battery
   bool need_save; // should save battery backup.
 } cart_ctx;
 
 cart_ctx *cart_get_ctx(void);
 
+void cart_memory_init(void);
+
 // Battery
 bool cart_has_battery(void);
-void cart_battery_load(void);
-void cart_battery_save(void);
+bool cart_battery_init(void);
+bool cart_battery_load(void);
+bool cart_battery_save(void);
 
 // Header
 bool is_valid_rom(void);
@@ -45,13 +49,13 @@ bool cart_verify_checksum(void);
 void print_rom_info(void);
 
 // IO
-bool cart_load(char *filename);
+bool cart_load(const char *filename);
 u8 cart_read(u16 address);
 void cart_write(u16 address, u8 value);
 
 // MBC
 bool cart_mbc1(void);
 bool cart_mbc3(void);
-void cart_setup_banking(void);
+bool cart_setup_banking(void);
 
 #endif

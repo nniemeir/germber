@@ -11,12 +11,10 @@ typedef struct {
   u64 ticks;
 } emu_ctx;
 
-void cleanup(void);
-
 void *emu_runtime_loop(void *p);
 
 emu_ctx *emu_get_ctx(void);
 
-void emu_cycles(int cpu_cycles);
+void emu_cycles(unsigned int cpu_cycles);
 
 #endif

@@ -114,6 +114,7 @@ void inst_to_str(cpu_ctx *cpu, char *str) {
 
   default:
     fprintf(stderr, "INVALID AM: %d\n", inst->mode);
-    NO_IMPL
+    cleanup();
+    exit(EXIT_FAILURE);
   }
 }

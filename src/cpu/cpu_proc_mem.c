@@ -5,15 +5,17 @@
 #include <cpu/instructions.h>
 
 void proc_ld(void) {
-  if (cpu_get_ctx()->dest_is_mem) {
+  cpu_ctx *cpu = cpu_get_ctx();
+
+  if (cpu->dest_is_mem) {
     // LD (BC), A for instance...
 
-    if (is_16_bit(cpu_get_ctx()->cur_inst->reg_2)) {
+    if (is_16_bit(cpu->cur_inst->reg_2)) {
       // if 16 bit register...
       emu_cycles(1);
-      bus_write16(cpu_get_ctx()->mem_dest, cpu_get_ctx()->fetched_data);
+      bus_write16(cpu->mem_dest, cpu->fetched_data);
     } else {
-      bus_write(cpu_get_ctx()->mem_dest, cpu_get_ctx()->fetched_data);
+      bus_write(cpu->mem_dest, cpu->fetched_data);
     }
 
     emu_cycles(1);
@@ -21,32 +23,31 @@ void proc_ld(void) {
     return;
   }
 
-  if (cpu_get_ctx()->cur_inst->mode == AM_HL_SPR) {
-    u8 hflag = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_2) & 0xF) +
-                   (cpu_get_ctx()->fetched_data & 0xF) >=
+  if (cpu->cur_inst->mode == AM_HL_SPR) {
+    u8 hflag = (cpu_read_reg(cpu->cur_inst->reg_2) & 0xF) +
+                   (cpu->fetched_data & 0xF) >=
                0x10;
 
-    u8 cflag = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_2) & 0xFF) +
-                   (cpu_get_ctx()->fetched_data & 0xFF) >=
+    u8 cflag = (cpu_read_reg(cpu->cur_inst->reg_2) & 0xFF) +
+                   (cpu->fetched_data & 0xFF) >=
                0x100;
 
     cpu_set_flags(0, 0, hflag, cflag);
-    cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1,
-                cpu_read_reg(cpu_get_ctx()->cur_inst->reg_2) +
-                    (int8_t)cpu_get_ctx()->fetched_data);
+    cpu_set_reg(cpu->cur_inst->reg_1,
+                cpu_read_reg(cpu->cur_inst->reg_2) + (int8_t)cpu->fetched_data);
 
     return;
   }
 
-  cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1, cpu_get_ctx()->fetched_data);
+  cpu_set_reg(cpu->cur_inst->reg_1, cpu->fetched_data);
 }
 
 void proc_ldh(void) {
-  if (cpu_get_ctx()->cur_inst->reg_1 == RT_A) {
-    cpu_set_reg(cpu_get_ctx()->cur_inst->reg_1,
-                bus_read(0xFF00 | cpu_get_ctx()->fetched_data));
+  cpu_ctx *cpu = cpu_get_ctx();
+  if (cpu->cur_inst->reg_1 == RT_A) {
+    cpu_set_reg(cpu->cur_inst->reg_1, bus_read(0xFF00 | cpu->fetched_data));
   } else {
-    bus_write(cpu_get_ctx()->mem_dest, cpu_get_ctx()->regs.af.a);
+    bus_write(cpu->mem_dest, cpu->regs.af.a);
   }
 
   emu_cycles(1);
@@ -68,11 +69,12 @@ void proc_pop(void) {
 }
 
 void proc_push(void) {
-  u16 hi = (cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) >> 8) & 0xFF;
+  cpu_ctx *cpu = cpu_get_ctx();
+  u16 hi = (cpu_read_reg(cpu->cur_inst->reg_1) >> 8) & 0xFF;
   emu_cycles(1);
   stack_push(hi);
 
-  u16 lo = cpu_read_reg(cpu_get_ctx()->cur_inst->reg_1) & 0xFF;
+  u16 lo = cpu_read_reg(cpu->cur_inst->reg_1) & 0xFF;
   emu_cycles(1);
   stack_push(lo);
 

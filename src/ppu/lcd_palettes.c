@@ -12,6 +12,7 @@ struct string_num palettes_map[NUM_OF_PALETTES] = {{"grayscale", 0},
                                                    {"blue", 4}};
 
 void palettes_init(void) {
+  lcd_ctx *lcd = lcd_get_ctx();
   static unsigned long colors_grayscale[4] = {0xFFFFFFFF, 0xFFAAAAAA,
                                               0xFF555555, 0xFF000000};
   static unsigned long colors_beige[4] = {0xFFFDF6E3, 0xFFDECBA4, 0xFF8B6E4B,
@@ -25,20 +26,20 @@ void palettes_init(void) {
   static unsigned long colors_blue[4] = {0xFFE0FFFF, 0xFF00CED1, 0xFF4682B4,
                                          0xFF2F4F4F};
 
-  lcd_get_ctx()->available_palettes[0] = colors_grayscale;
-  lcd_get_ctx()->available_palettes[1] = colors_beige;
-  lcd_get_ctx()->available_palettes[2] = colors_forest;
-  lcd_get_ctx()->available_palettes[3] = colors_vaporwave;
-  lcd_get_ctx()->available_palettes[4] = colors_blue;
+  lcd->available_palettes[0] = colors_grayscale;
+  lcd->available_palettes[1] = colors_beige;
+  lcd->available_palettes[2] = colors_forest;
+  lcd->available_palettes[3] = colors_vaporwave;
+  lcd->available_palettes[4] = colors_blue;
 
-  lcd_get_ctx()->current_colors = lcd_get_ctx()->available_palettes[0];
+  lcd->current_colors = lcd->available_palettes[0];
 }
 
 bool set_palette(char *optarg) {
+  lcd_ctx *lcd = lcd_get_ctx();
   for (unsigned int i = 0; i < NUM_OF_PALETTES; i++) {
     if (strcmp(optarg, palettes_map[i].name) == 0) {
-      lcd_get_ctx()->current_colors =
-          lcd_get_ctx()->available_palettes[palettes_map[i].num];
+      lcd->current_colors = lcd->available_palettes[palettes_map[i].num];
       return true;
     }
   }

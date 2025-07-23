@@ -6,13 +6,15 @@
 
 void proc_none(void) {
   printf("INVALID INSTRUCTION!\n");
+  cleanup();
   exit(EXIT_FAILURE);
 }
 
 void proc_nop(void) {}
 
 void proc_cpl(void) {
-  cpu_get_ctx()->regs.af.a = ~cpu_get_ctx()->regs.af.a;
+  cpu_ctx *cpu = cpu_get_ctx();
+  cpu->regs.af.a = ~cpu->regs.af.a;
   cpu_set_flags(-1, 1, 1, -1);
 }
 

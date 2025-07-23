@@ -6,7 +6,8 @@
 
 void process_args(int argc, char *argv[]) {
   char *rom_path = NULL;
-  ui_get_ctx()->scale = 4;
+  ui_ctx *ui = ui_get_ctx();
+  ui->scale = 4;
 
   int c;
   while ((c = getopt(argc, argv, "dhp:r:s:")) != -1) {
@@ -21,6 +22,7 @@ void process_args(int argc, char *argv[]) {
       printf("  -h               Show this help message\n");
       printf("  -r               Specify ROM Path\n");
       list_palettes();
+      cleanup();
       exit(EXIT_SUCCESS);
     case 'p':
       if (!set_palette(optarg)) {
@@ -31,26 +33,29 @@ void process_args(int argc, char *argv[]) {
       rom_path = optarg;
       break;
     case 's':
-      ui_get_ctx()->scale = atoi(optarg);
-      if (ui_get_ctx()->scale < 1) {
+      ui->scale = atoi(optarg);
+      if (ui->scale < 1) {
         fprintf(stderr, "Invalid scale provided.\n");
+        cleanup();
         exit(EXIT_FAILURE);
       }
       break;
     case '?':
       fprintf(stderr, "Unknown option '-%c'. Run with -h for options.\n",
               optopt);
+      cleanup();
       exit(EXIT_FAILURE);
     }
   }
 
   if (!rom_path) {
     fprintf(stderr, "ROM path not specified.\n");
+    cleanup();
     exit(EXIT_FAILURE);
   }
 
   if (!cart_load(rom_path)) {
-    printf("Failed to load ROM file: %s\n", rom_path);
+    cleanup();
     exit(EXIT_FAILURE);
   }
 }
