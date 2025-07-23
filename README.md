@@ -1,6 +1,16 @@
 # GERMBER
 
-An annotated fork of Low Level Devel's [Gameboy emulator](https://github.com/rockytriton/LLD_gbemu) made for educational purposes.
+A fork of Low Level Devel's [Gameboy emulator](https://github.com/rockytriton/LLD_gbemu) made for educational purposes.
+
+## Changes 
+* Detailed annotations (WIP)
+* Codebase refactoring
+* Improved error handling
+* Improved memory management
+* More robust argument parsing via getopt
+* Debug messages can now be toggled via -d flag
+* Alternative color palettes
+* Alternative control scheme
 
 ## Dependencies
 * GCC
