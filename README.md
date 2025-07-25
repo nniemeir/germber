@@ -40,8 +40,8 @@ germber [OPTIONS]
 
 ### Options
 ```
--d			            Enable debug mode
--h                      Display program usage
--p                      Specify color palette
--r                      Specify ROM path
+-d  Enable debug mode
+-h  Display program usage
+-p  Specify color palette
+-r  Specify ROM path
 ```
